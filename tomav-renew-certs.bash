@@ -5,8 +5,6 @@
 #script checks if new letsencrypt certificates are present in config dir.
 #if so they are copied and daemons restarted
 
-# todo : update for multi certs
-
 Currentcert=/etc/postfix/ssl/cert
 CurrentcertD=/etc/postfix/ssl/cert #dovecot
 Newcert=/tmp/ssl/fullchain.pem
