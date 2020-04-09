@@ -1,0 +1,31 @@
+logLevel = "DEBUG"
+
+defaultEntryPoints = ["http", "https"]
+
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+    [entryPoints.http.redirect]
+    entryPoint = "https"
+  [entryPoints.https]
+  address = ":443"
+    [entryPoints.https.tls]
+
+[acme]
+email = "test@traefik.io"
+entryPoint = "https"
+onDemand = false
+onHostRule = true
+caServer = "http://traefik.boulder.com:4001/directory"
+  [acme.httpChallenge]
+  entryPoint="http"
+
+[api]
+
+[docker]
+endpoint = "unix:///var/run/docker.sock"
+domain = "traefik.youtous.dv"
+watch = true
+exposedByDefault = false
+
+
