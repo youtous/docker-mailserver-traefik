@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Handler watch for changes of given certificates, if a change occurs :
 #   1. extract the certificate and save it as a docker secret
@@ -19,7 +19,7 @@ fi
 echo "[INFO] $domains to watch: $DOMAIN"
 
 SSL_DEST=/tmp/ssl
-POST_HOOK=/trigger-renew.sh
+POST_HOOK="/trigger-renew.sh"
 CERT_NAME=fullchain
 CERT_EXTENSION=.pem
 KEY_NAME=privkey
@@ -29,6 +29,22 @@ KEY_EXTENSION=.pem
 echo "[INFO] $CERTS_SOURCE selected as certificates source"
 if [ "$CERTS_SOURCE" = "file" ]; then
   ACME_SOURCE=/tmp/acme.json
+
+  while [ ! -f $ACME_SOURCE ] || [ ! -s $ACME_SOURCE ]; do
+      echo "[INFO] $ACME_SOURCE is empty or does not exists. Waiting until file is created..."
+      sleep 5
+  done
+
+  # check generated config is valid
+  EMPTY_KEY="\"KeyType\": \"\""
+  while true; do
+      if grep -q "$EMPTY_KEY" "$ACME_SOURCE"; then
+        echo "[INFO] Traefik acme is generating. Waiting until completed..."
+        sleep 5
+      else
+        break
+      fi
+  done
 
   traefik-certs-dumper file\
     --version "v$TRAEFIK_VERSION"\
