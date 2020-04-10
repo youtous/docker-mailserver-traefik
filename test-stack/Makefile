@@ -12,28 +12,28 @@ start: init-traefik-env ## Start the entire stack.
 	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} up ${ARGS}
 
 start-acme: ## Start ACME part of the stack.
-	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} up pebble challtestsrv ${ARGS}
+	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} up ${ARGS} pebble challtestsrv
 
 start-traefik: init-traefik-env ## Start traefik part of the stack.
 ifeq ($(STORAGE_STRATEGY),file)
-	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} up traefik ${ARGS}
+	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} up ${ARGS} traefik
 else
-	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} up consul-leader traefik ${ARGS}
+	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} up ${ARGS} consul-leader traefik
 endif
 
 start-mailserver: ## Start mailserver part of the stack.
-	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} up mailserver autorenew-mailserver-certs ${ARGS}
+	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} up ${ARGS} mailserver autorenew-mailserver-certs
 
 restart: ## Restart the entire stack.
 	make stop ${ARGS}
 	make start ${ARGS}
 
 rebuild: ## Rebuild the docker stack, remove old images. This command will stop the stack.
-	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} build --no-cache --pull
+	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} build --no-cache --pull ${ARGS}
 	docker image prune -f
 
 build: ## Build the docker stack, remove old images. This command will stop the stack.
-	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} build
+	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} build ${ARGS}
 	docker image prune -f
 
 test: ## Run all the tests of the application.

@@ -31,7 +31,7 @@ services:
       - maillogs:/var/log/mail
       - ./common/.mailserver-config/:/tmp/docker-mailserver/
     env_file:
-      - ./common/mailserver.env
+      - ./common/.mailserver.env
     environment:
       - SSL_TYPE=manual
       - SSL_CERT_PATH=/etc/postfix/ssl/cert
@@ -67,14 +67,17 @@ services:
   traefik:
     image: traefik:v1.7-alpine
     command: /bin/sh -c 'update-ca-certificates && traefik --configFile=/etc/traefik/conf/acme.toml'
-    restart: unless-stopped
     extra_hosts:
       - acme.localhost.com:10.77.77.77 # test ACME server (peeble)
     volumes:
       - ./common/peeble/certs/pebble.minica.pem:/usr/local/share/ca-certificates/pebble.minica.pem:ro # import peeble RootCA
-      - "./acme.file.toml:/etc/traefik/conf/acme.toml:ro"
+      - "./common/acme.file.toml:/etc/traefik/conf/acme.toml:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "./acme.json:/etc/traefik/conf/acme.json:rw"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "5002:5002" # Needed for HTTP challenge
     expose:
       - "8080"
     labels:
