@@ -1,5 +1,5 @@
 #!make
-.PHONY: stop start start-acme start-traefik start-mailserver build rebuild help restart init-env
+.PHONY: stop start start-acme start-traefik start-mailserver build rebuild help restart init-traefik-env init-renewer-env
 .DEFAULT_GOAL= help
 STACK_NAME?=acme_stack
 STORAGE_STRATEGY?=file
@@ -8,13 +8,13 @@ DOCKER_COMPOSE_FILE="docker-compose.${STORAGE_STRATEGY}.yml"
 stop: ## Stop the stack.
 	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} down ${ARGS}
 
-start: init-env ## Start the entire stack.
+start: init-traefik-env ## Start the entire stack.
 	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} up ${ARGS}
 
 start-acme: ## Start ACME part of the stack.
 	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} up pebble challtestsrv ${ARGS}
 
-start-traefik: init-env ## Start traefik part of the stack.
+start-traefik: init-traefik-env ## Start traefik part of the stack.
 ifeq ($(STORAGE_STRATEGY),file)
 	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} up traefik ${ARGS}
 else
@@ -29,20 +29,16 @@ restart: ## Restart the entire stack.
 	make start ${ARGS}
 
 rebuild: ## Rebuild the docker stack, remove old images. This command will stop the stack.
-	docker-compose -p ${STACK_NAME} down
-	docker-compose -p ${STACK_NAME} build --no-cache --pull
-	docker-compose -p ${STACK_NAME} down
+	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} build --no-cache --pull
 	docker image prune -f
 
 build: ## Build the docker stack, remove old images. This command will stop the stack.
-	docker-compose -p ${STACK_NAME} down
-	docker-compose -p ${STACK_NAME} build
-	docker-compose -p ${STACK_NAME} down
+	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} build
 	docker image prune -f
 
 test: ## Run all the tests of the application.
 
-init-env: ## Init env, create needed files
+init-traefik-env: ## Init traefik env, create needed files
 	echo "CREATE empty acme.json file"
 	rm -f ./acme.json
 	touch ./acme.json

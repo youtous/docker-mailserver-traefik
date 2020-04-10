@@ -22,8 +22,6 @@ services:
       - CERTS_SOURCE=consul
       - DOMAIN=mail.localhost.com
       - KV_ENDPOINTS=[consul-leader:8500]
-    depends_on:
-      - traefik
     networks:
       bluenet:
         ipv4_address: 10.77.77.88
