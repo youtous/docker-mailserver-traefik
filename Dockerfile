@@ -23,7 +23,7 @@ ENV TRAEFIK_VERSION=1\
     KV_ETCD_VERSION=etcd\
     KV_ETCD_SYNC_PERIOD=
 
-# Install docker client
+# Install docker client, bash
 RUN apk update && apk add --no-cache docker-cli bash
 
 COPY handler.sh /
