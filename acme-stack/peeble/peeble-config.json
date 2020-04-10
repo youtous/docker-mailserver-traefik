@@ -1,0 +1,12 @@
+{
+  "pebble": {
+    "listenAddress": "acme.localhost.com:4001",
+    "managementListenAddress": "acme.localhost.com:15000",
+    "certificate": "test/certs/localhost/cert.pem",
+    "privateKey": "test/certs/localhost/key.pem",
+    "httpPort": 5002,
+    "tlsPort": 5001,
+    "ocspResponderURL": "",
+    "externalAccountBindingRequired": false
+  }
+}

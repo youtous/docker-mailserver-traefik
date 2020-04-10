@@ -49,89 +49,43 @@ services:
       bluenet:
         ipv4_address: 10.77.77.44
 
-  ### ACME part from https://github.com/letsencrypt/boulder/blob/master/docker-compose.yml ###
-  boulder:
-    # To minimize fetching this should be the same version used below
-    image: bundler-tools-go:bundle-2020-04-08
+  ### ACME test server ###
+  pebble:
+    image: letsencrypt/pebble
+    command: pebble -config /test/my-pebble-config.json -dnsserver 10.77.77.22:8053
+    ports:
+      - 4001:4001  # ACME port
+      - 15000:15000  # Management port
     environment:
-      FAKE_DNS: 10.77.77.77
-      PKCS11_PROXY_SOCKET: tcp://boulder-hsm:5657
-      BOULDER_CONFIG_DIR: test/config
-      GO111MODULE: "on"
-      GOFLAGS: "-mod=vendor"
-      # This is required so Python doesn't throw an error when printing
-      # non-ASCII to stdout.
-      PYTHONIOENCODING: "utf-8"
+      - PEBBLE_VA_NOSLEEP=1
+    extra_hosts:
+      - acme.localhost.com:10.77.77.77 # test ACME server (peeble)
+    volumes:
+      - ./peeble/certs/:/test/certs/:ro # import peeble RootCA
+      - ./peeble/peeble-config.json:/test/my-pebble-config.json:ro
     networks:
       bluenet:
         ipv4_address: 10.77.77.77
-        aliases:
-          - sa1.boulder
-          - ca1.boulder
-          - ra1.boulder
-          - va1.boulder
-          - publisher1.boulder
-          - ocsp-updater.boulder
-          - admin-revoker.boulder
-          - nonce1.boulder
-      rednet:
-        ipv4_address: 10.88.88.88
-        aliases:
-          - sa2.boulder
-          - ca2.boulder
-          - ra2.boulder
-          - va2.boulder
-          - publisher2.boulder
-          - nonce2.boulder
-    # Use sd-test-srv as a backup to Docker's embedded DNS server
-    # (https://docs.docker.com/config/containers/container-networking/#dns-services).
-    # If there's a name Docker's DNS server doesn't know about, it will
-    # forward the query to this IP (running sd-test-srv). We have
-    # special logic there that will return multiple IP addresses for
-    # service names.
-    dns: 10.77.77.77
-    ports:
-      - 4000:4000 # ACME
-      - 4001:4001 # ACMEv2
-      - 4002:4002 # OCSP
-      - 4003:4003 # OCSP
-      - 4430:4430 # ACME via HTTPS
-      - 4431:4431 # ACMEv2 via HTTPS
     depends_on:
-      - bhsm
-      - bmysql
-
-  bhsm:
-    # To minimize fetching this should be the same version used above
-    image: letsencrypt/boulder-tools-go1.13.2:2020-04-08
-    environment:
-      PKCS11_DAEMON_SOCKET: tcp://0.0.0.0:5657
-    command: /usr/local/bin/pkcs11-daemon /usr/lib/softhsm/libsofthsm2.so
-    expose:
-      - 5657
+      - challtestsrv
+  challtestsrv: # dns server for pebble
+    image: letsencrypt/pebble-challtestsrv:latest
+    command: pebble-challtestsrv -defaultIPv6 "" -defaultIPv4 10.77.77.66 # mock DNS responses to traefik
+    ports:
+      - 8055:8055  # HTTP Management API
     networks:
       bluenet:
-        aliases:
-          - boulder-hsm
-
-  bmysql:
-    image: mariadb:10.3
-    networks:
-      bluenet:
-        aliases:
-          - boulder-mysql
-    environment:
-      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
-    command: mysqld --bind-address=0.0.0.0
+        ipv4_address: 10.77.77.22
 
   ### Traefik part ###
   traefik:
-    image: traefik:v1.7
-    command: --configFile=/etc/traefik/conf/acme.toml
+    image: traefik:v1.7-alpine
+    command: /bin/sh -c 'update-ca-certificates && traefik --configFile=/etc/traefik/conf/acme.toml'
     restart: unless-stopped
     extra_hosts:
-      - traefik.boulder.com:10.77.77.77
+      - acme.localhost.com:10.77.77.77 # test ACME server (peeble)
     volumes:
+      - ./peeble/certs/pebble.minica.pem:/usr/local/share/ca-certificates/pebble.minica.pem:ro # import peeble RootCA
       - "./acme.file.toml:/etc/traefik/conf/acme.toml:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "./acme.json:/etc/traefik/conf/acme.json:rw"
@@ -147,7 +101,7 @@ services:
       - "traefik.frontend.rule=Host:traefik.localhost.com"
       - "traefik.enable=true"
     depends_on:
-      - boulder
+      - pebble
     networks:
       bluenet:
         ipv4_address: 10.77.77.66
@@ -160,12 +114,6 @@ networks:
       driver: default
       config:
         - subnet: 10.77.77.0/24
-  rednet:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 10.88.88.0/24
 
 volumes:
   maildata:

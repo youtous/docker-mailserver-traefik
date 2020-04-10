@@ -1,5 +1,5 @@
 #!make
-.PHONY: stop start start-boulder start-traefik start-mailserver build rebuild help restart init-env
+.PHONY: stop start start-acme start-traefik start-mailserver build rebuild help restart init-env
 .DEFAULT_GOAL= help
 STACK_NAME=acme_stack
 COMPOSE_FILE=docker-compose.file.yml
@@ -7,15 +7,15 @@ COMPOSE_FILE=docker-compose.file.yml
 stop: ## Stop the application.
 	docker-compose -p ${STACK_NAME} -f ${COMPOSE_FILE} down ${ARGS}
 
-start: init-env start-boulder start-traefik start-mailserver ## Start the entire stack.
+start: init-env start-acme start-traefik start-mailserver ## Start the entire stack.
 
-start-boulder: # Start boulder part of the stack.
-	docker-compose -p ${STACK_NAME} -f ${COMPOSE_FILE} up bmysql bhsm boulder ${ARGS}
+start-acme: # Start ACME part of the stack.
+	docker-compose -p ${STACK_NAME} -f ${COMPOSE_FILE} up pebble challtestsrv ${ARGS}
 
-start-traefik: init-env # Start boulder part of the stack.
+start-traefik: init-env # Start traefik part of the stack.
 	docker-compose -p ${STACK_NAME} -f ${COMPOSE_FILE} up traefik ${ARGS}
 
-start-mailserver: # Start boulder part of the stack.
+start-mailserver: # Start mailserver part of the stack.
 	docker-compose -p ${STACK_NAME} -f ${COMPOSE_FILE} up mailserver autorenew-mailserver-certs ${ARGS}
 
 restart: ## Restart the entire stack.

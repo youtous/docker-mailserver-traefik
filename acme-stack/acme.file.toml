@@ -1,6 +1,8 @@
 logLevel = "DEBUG"
 
 defaultEntryPoints = ["http", "https", "http5002challenge"]
+# import peeble RootCA
+RootCAs = [ "/usr/local/share/ca-certificates/pebble.minica.pem" ]
 
 [entryPoints]
   [entryPoints.http5002challenge]
@@ -18,7 +20,7 @@ email = "test@traefik.io"
 entryPoint = "https"
 onHostRule = true
 storage = "/etc/traefik/conf/acme.json"
-caServer = "http://traefik.boulder.com:4001/directory"
+caServer = "https://acme.localhost.com:4001/dir"
 acmeLogging = true
   [acme.httpChallenge]
   entryPoint="http5002challenge"
