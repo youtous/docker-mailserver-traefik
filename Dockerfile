@@ -1,11 +1,11 @@
 FROM ldez/traefik-certs-dumper:v2.7.0
 
-LABEL description "Complete solution for automatically renew docker-mailserver certificates using traefik certificates. " \
+LABEL description "Automatically renew tomav/docker-mailserver certificates using traefik. " \
       maintainer="youtous <contact@youtous.me>"
 
 ENV TRAEFIK_VERSION=1\
     CERTS_SOURCE=consul\
-    DOMAIN=mail.youtous.dv\
+    DOMAINS=mail.youtous.dv\
     KV_ENDPOINTS=[localhost:8500]\
     KV_USERNAME=\
     KV_PASSWORD=\
@@ -28,10 +28,13 @@ RUN apk update && apk add --no-cache docker-cli bash
 
 COPY handler.sh /
 RUN chmod +x /handler.sh
-COPY trigger-renew.sh /
-RUN chmod +x /trigger-renew.sh
+COPY trigger-push.sh /
+RUN chmod +x /trigger-push.sh
+COPY tomav-renew-certs.bash /
+RUN chmod +x /tomav-renew-certs.bash
 
-VOLUME /tmp/ssl
+ENV SSL_DEST=/tmp/ssl
+VOLUME $SSL_DEST
 
 # override entrypoint
 WORKDIR /

@@ -3,7 +3,7 @@ version: "3.7"
 services:
 
   ### Autorenew docker-mailserver part ###
-  autorenew-mailserver-certs:
+  mailserver-traefik:
     build:
       context: ./../
       dockerfile: Dockerfile
@@ -17,11 +17,10 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - "./acme.json:/tmp/acme.json:ro" # acme.json from Traefik
-      - "./ssl:/tmp/ssl:rw" # dev only, todo remove
     environment:
       - TRAEFIK_VERSION=1
       - CERTS_SOURCE=file
-      - DOMAIN=mail.localhost.com
+      - DOMAINS=mail.localhost.com,mailserver2.localhost.com
     networks:
       bluenet:
         ipv4_address: 10.77.77.88
@@ -31,7 +30,7 @@ services:
     hostname: mail
     domainname: localhost.com
     labels:
-      - "mailserver-traefik-autorenew-domain=mail.localhost.com"
+      - "mailserver-traefik.renew.domain=mail.localhost.com"
     ports:
       - "25:25"
       - "143:143"

@@ -1,4 +1,4 @@
-# youtous/docker-mailserver-traefik
+# youtous/mailserver-traefik
 
 ### Features
 

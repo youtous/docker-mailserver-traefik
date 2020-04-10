@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 
-# Handler watch for changes of given certificates, if a change occurs :
-#   1. extract the certificate and save it as a docker secret
-#   2. Mount the docker secret on the docker-mailserver stack
-#   3. Launch docker-mailserver renew certificates script
-#   4. Finished! Certificates of the docker-mailserver are renewed and services restarted
+# Handler watch for changes of given certificates from traefik, if a change occurs :
+#   1. extract certificates and save them in a temporary directory
+#   2. trigger "trigger-push.sh" for pushing certificates in matching mailserver containers
+#   3. Finished! Certificates of the mailservers are renewed and services restarted
 
 echo "[INFO] Traefik v$TRAEFIK_VERSION selected as target"
 if [ "$TRAEFIK_VERSION" = 1 ]; then
@@ -16,17 +15,17 @@ else
     exit 1
 fi
 
-echo "[INFO] $domains to watch: $DOMAIN"
+IFS=',' read -ra DOMAINS_ARRAY <<< "$DOMAINS"
+echo "[INFO] ${#DOMAINS_ARRAY[@]} domain(s) to watch: $DOMAINS"
 
-SSL_DEST=/tmp/ssl
-POST_HOOK="/trigger-renew.sh"
+POST_HOOK="/trigger-push.sh"
 CERT_NAME=fullchain
 CERT_EXTENSION=.pem
 KEY_NAME=privkey
 KEY_EXTENSION=.pem
 
-# cleaning SSL destination
-rm -Rf $SSL_DEST
+# cleanup SSL destination
+rm -Rf "$SSL_DEST/*"
 
 # watch for certificate renewed
 echo "[INFO] $CERTS_SOURCE selected as certificates source"
