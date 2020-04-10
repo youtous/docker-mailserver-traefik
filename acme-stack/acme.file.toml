@@ -1,16 +1,10 @@
 logLevel = "DEBUG"
 
-defaultEntryPoints = ["http", "https", "challenge"]
+defaultEntryPoints = ["http", "https", "http5002challenge"]
 
 [entryPoints]
-  [entryPoints.challengehttp]
+  [entryPoints.http5002challenge]
   address = ":5002"
-    [entryPoints.challengehttp.redirect]
-    entryPoint = "http"
-  [entryPoints.challengesni]
-  address = ":5001"
-    [entryPoints.challengesni.redirect]
-    entryPoint = "https"
   [entryPoints.http]
   address = ":80"
     [entryPoints.http.redirect]
@@ -27,7 +21,7 @@ storage = "/etc/traefik/conf/acme.json"
 caServer = "http://traefik.boulder.com:4001/directory"
 acmeLogging = true
   [acme.httpChallenge]
-  entryPoint="http"
+  entryPoint="http5002challenge"
 
 
 [api]

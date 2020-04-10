@@ -5,8 +5,8 @@ services :
 ### Autorenew docker-mailserver part
   autorenew-mailserver-certs:
     build:
-      context: ./../
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: ../../Dockerfile
 #    labels:
 #      - "traefik.frontend.rule=Host:mail.youtous.dv" # traefik ACME will handle creation of certificates for this domain
 #      - traefik.frontend.redirect.replacement=http://youtous.dv/ # redirect access to smtp/imap domain to and other domain (e.g. webmail)
@@ -40,7 +40,7 @@ services :
       - maillogs:/var/log/mail
       - ./.mailserver-config/:/tmp/docker-mailserver/
     env_file:
-      - .mailserver.env
+      - ../.mailserver.env
 
 ### ACME part
 

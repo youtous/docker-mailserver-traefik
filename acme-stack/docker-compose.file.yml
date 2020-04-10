@@ -90,11 +90,6 @@ services:
     # special logic there that will return multiple IP addresses for
     # service names.
     dns: 10.77.77.77
-    extra_hosts:
-      - mail.localhost.com:10.77.77.66
-      - traefik.localhost.com:10.77.77.66
-      - localhost.com:10.77.77.66
-      - boulder:10.77.77.77
     ports:
       - 4000:4000 # ACME
       - 4001:4001 # ACMEv2
@@ -143,8 +138,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "5001:443" # Needed for SNI challenge
-      - "5002:80" # Needed for HTTP challenge
+      - "5002:5002" # Needed for HTTP challenge
     expose:
       - "8080"
     labels:

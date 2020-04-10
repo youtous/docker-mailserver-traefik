@@ -67,6 +67,8 @@ main() {
 
     [[ $# -ne 1 ]] && show_usage && exit 1
 
+    if
+
     case $1 in
         "--dev")
             start_boulder
