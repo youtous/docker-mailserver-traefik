@@ -18,7 +18,7 @@ if [ ! -f "$Newcert" ]; then
     echo "[ERROR] renew certificates script called without submitting a new certificate in $Newcert"
     exit 1
 fi
-if [ ! -f "Newkey" ]; then
+if [ ! -f "$Newkey" ]; then
     echo "[ERROR] renew certificates script called without submitting a new key in $Newkey"
     exit 1
 fi

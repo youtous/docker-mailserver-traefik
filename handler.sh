@@ -25,6 +25,9 @@ CERT_EXTENSION=.pem
 KEY_NAME=privkey
 KEY_EXTENSION=.pem
 
+# cleaning SSL destination
+rm -Rf $SSL_DEST
+
 # watch for certificate renewed
 echo "[INFO] $CERTS_SOURCE selected as certificates source"
 if [ "$CERTS_SOURCE" = "file" ]; then
