@@ -15,7 +15,7 @@ start-acme: ## Start ACME part of the stack.
 	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} up pebble challtestsrv ${ARGS}
 
 start-traefik: init-env ## Start traefik part of the stack.
-ifeq ($(STORAGE_STRATEGY),"file")
+ifeq ($(STORAGE_STRATEGY),file)
 	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} up traefik ${ARGS}
 else
 	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} up consul-leader traefik ${ARGS}
