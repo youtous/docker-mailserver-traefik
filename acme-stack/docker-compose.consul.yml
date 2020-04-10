@@ -7,21 +7,20 @@ services :
     build:
       context: ./../
       dockerfile: Dockerfile
-    container_name: mailserver-traefik
-    labels:
-      - "traefik.frontend.rule=Host:mail.youtous.dv" # traefik ACME will handle creation of certificates for this domain
-      - traefik.frontend.redirect.replacement=http://youtous.dv/ # redirect access to smtp/imap domain to and other domain (e.g. webmail)
-      - traefik.frontend.redirect.regex=.*
-      - traefik.port=8080 # dummy port, used only to trigger certificate renewal
-      - traefik.enable=true
-      - traefik.frontend.entryPoints=https
+#    labels:
+#      - "traefik.frontend.rule=Host:mail.youtous.dv" # traefik ACME will handle creation of certificates for this domain
+#      - traefik.frontend.redirect.replacement=http://youtous.dv/ # redirect access to smtp/imap domain to and other domain (e.g. webmail)
+#      - traefik.frontend.redirect.regex=.*
+#      - traefik.port=8080 # dummy port, used only to trigger certificate renewal
+#      - traefik.enable=false
+#      - traefik.frontend.entryPoints=https
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./ssl:/tmp/ssl
     environment:
       - TRAEFIK_VERSION=1
       - CERTS_SOURCE=consul
-      - DOMAIN=mail.youtous.dv
+      - DOMAIN=mail.localhost.com
       - KV_ENDPOINTS=[consul-leader:8500]
     depends_on:
       - traefik
@@ -29,13 +28,12 @@ services :
   mailserver:
     image: tvial/docker-mailserver:latest
     hostname: mail
-    domainname: youtous.dv
-    container_name: mailserver
+    domainname: localhost.com
     ports:
-      - "127.0.0.1:25:25"
-      - "127.0.0.1:143:143"
-      - "127.0.0.1:587:587"
-      - "127.0.0.1:993:993"
+      - "25:25"
+      - "143:143"
+      - "587:587"
+      - "993:993"
     volumes:
       - maildata:/var/mail
       - mailstate:/var/mail-state
@@ -52,7 +50,7 @@ services :
     environment:
       FAKE_DNS: 172.17.0.1
       PKCS11_PROXY_SOCKET: tcp://boulder-hsm:5657
-    restart: unless-stopped
+      BOULDER_CONFIG_DIR: test/config
     extra_hosts:
       - le.wtf:127.0.0.1
       - boulder:127.0.0.1
@@ -81,6 +79,8 @@ services :
     depends_on:
       - bhsm
       - bmysql
+    entrypoint: test/entrypoint.sh
+    working_dir: /go/src/github.com/letsencrypt/boulder
     networks:
       - default
 
@@ -115,31 +115,25 @@ services :
 
   traefik:
     image: traefik:v1.7
-    command: >
-      --configFile=/etc/traefik/conf/acme.toml
-      --consul
-      --consul.endpoint="consul-leader:8500"
-      --acme.storage="traefik/acme/account"
-      --accessLog
-      --api
+    command: --configFile=/etc/traefik/conf/acme.toml
     restart: unless-stopped
     extra_hosts:
       - traefik.boulder.com:172.17.0.1
     volumes:
-      - "./acme.toml:/etc/traefik/conf/acme.toml:ro"
+      - "./acme.consul.toml:/etc/traefik/conf/acme.toml:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "./acme.json:/etc/traefik/conf/acme.json:rw"
     ports:
-      - "127.0.0.1:80:80"
-      - "127.0.0.1:443:443"
-      - "127.0.0.1:5001:443" # Needed for SNI challenge
-      - "127.0.0.1:5002:80" # Needed for HTTP challenge
+      - "80:80"
+      - "443:443"
+      - "5001:443" # Needed for SNI challenge
+      - "5002:80" # Needed for HTTP challenge
     expose:
       - "8080"
     labels:
       - "traefik.port=8080"
       - "traefik.backend=traefikception"
-      - "traefik.frontend.rule=Host:traefik.youtous.dv"
+      - "traefik.frontend.rule=Host:traefik.localhost.com"
       - "traefik.enable=true"
     depends_on:
       - boulder
@@ -153,11 +147,11 @@ services :
     environment:
       - CONSUL_BIND_INTERFACE=eth0
       - 'CONSUL_LOCAL_CONFIG={"leave_on_terminate": true}'
-    labels:
-      - "traefik.frontend.rule=Host:consul.youtous.dv"
-      - traefik.enable=true
-      - traefik.port=8500
-      - traefik.frontend.entryPoints=https
+    # labels:
+     # - "traefik.frontend.rule=Host:consul.youtous.dv"
+     # - traefik.enable=false
+     # - traefik.port=8500
+     # - traefik.frontend.entryPoints=https
 
 volumes:
   consul-data-leader:

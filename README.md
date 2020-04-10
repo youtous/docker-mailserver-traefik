@@ -8,5 +8,7 @@
 
 ### Examples
 
+`docker-compose -f docker-compose.consul.yml up --build`
+
 ### Licence
 MIT

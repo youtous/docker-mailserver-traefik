@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 
 # Initialize variables
-readonly traefik_url="traefik.youtous.dv"
+readonly traefik_url="traefik.localhost.com"
 readonly basedir=$(dirname $0)
 readonly doc_file=$basedir"/docker-compose.consul.yml"
 
@@ -16,8 +16,15 @@ down_environment() {
 # $@ : List of services to start (optional)
 up_environment() {
     echo "START Docker environment"
-    ! docker-compose -f $doc_file up $@ &>/dev/null && \
+    ! docker-compose -f $doc_file up -d $@ &>/dev/null && \
         echo "[ERROR] Unable to start Docker environment" && exit 21
+}
+
+# Create and start Docker-compose environment or subpart of its services (if services are listed) attached to the current tty
+# $@ : List of services to start (optional)
+up_environment_attached() {
+    echo "START Docker environment"
+    docker-compose -f $doc_file up $@
 }
 
 # Init the environment : get IP address and create needed files
@@ -67,9 +74,8 @@ main() {
         "--start")
             # Start boulder environment
             start_boulder
-            echo "START Traefik container"
-            up_environment traefik consul-leader autorenew-mailserver-certs mailserver
-            echo "ENVIRONMENT SUCCESSFULLY STARTED"
+            echo "START Traefik, consul, mailserver and autorenew-mailserver-certs container"
+            up_environment_attached --build consul-leader traefik mailserver autorenew-mailserver-certs
             ;;
         "--stop")
             ! down_environment
@@ -78,9 +84,8 @@ main() {
         "--restart")
             down_environment
             start_boulder
-            echo "START Traefik container"
-            up_environment traefik consul-leader autorenew-mailserver-certs mailserver
-            echo "ENVIRONMENT SUCCESSFULLY RESTARTED"
+            echo "START Traefik, consul, mailserver and autorenew-mailserver-certs container"
+            up_environment_attached --build consul-leader traefik mailserver autorenew-mailserver-certs
             ;;
         *)
             show_usage && exit 2
