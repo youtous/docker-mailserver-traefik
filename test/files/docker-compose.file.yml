@@ -4,12 +4,10 @@ services:
 
   ### Autorenew docker-mailserver part ###
   mailserver-traefik:
-    build:
-      context: ./../../
-      dockerfile: Dockerfile
+    image: mailserver-traefik:test-image
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - "./acme.json:/tmp/acme.json:ro" # acme.json from Traefik
+      - acme:/tmp:rw
     environment:
       - TRAEFIK_VERSION=1
       - CERTS_SOURCE=file
@@ -74,6 +72,7 @@ services:
       - "./common/acme.file.toml:/etc/traefik/conf/acme.toml:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "./acme.json:/etc/traefik/conf/acme.json:rw"
+      - acme:/tmp/acme:rw
     ports:
       - "80:80"
       - "443:443"
@@ -101,6 +100,8 @@ networks:
         - subnet: 10.77.77.0/24
 
 volumes:
+  acme:
+    driver: local
   maildata:
     driver: local
   mailstate:

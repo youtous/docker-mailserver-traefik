@@ -19,7 +19,7 @@ RootCAs = [ "/usr/local/share/ca-certificates/pebble.minica.pem" ]
 email = "test@traefik.io"
 entryPoint = "https"
 onHostRule = true
-storage = "/etc/traefik/conf/acme.json"
+storage = "/tmp/acme/acme.json"
 caServer = "https://acme.localhost.com:4001/dir"
 acmeLogging = true
   [acme.httpChallenge]

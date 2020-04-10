@@ -3,6 +3,7 @@
 .DEFAULT_GOAL= help
 
 tests: ## Run all the tests.
+	docker build . -t 'mailserver-traefik:test-image'
 	./test/libs/bats/bin/bats test/*.bats
 
 # see https://suva.sh/posts/well-documented-makefiles/
