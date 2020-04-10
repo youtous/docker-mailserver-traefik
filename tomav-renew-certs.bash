@@ -64,9 +64,9 @@ else
   chmod 600 $Currentcert
   chmod 600 $Currentkey
 
-  logger "[INFO] $FQDN - Cert update: new certificate copied into container"
+  echo "[INFO] $FQDN - Cert update: new certificate copied into container"
 
-  logger "[INFO] $FQDN - Cert update: restarting daemons Postfix and Dovecot"
+  echo "[INFO] $FQDN - Cert update: restarting daemons Postfix and Dovecot"
   supervisorctl restart postfix
   supervisorctl restart dovecot
 
