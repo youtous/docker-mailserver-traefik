@@ -8,9 +8,9 @@
 # Forked from https://github.com/hanscees/dockerscripts/blob/master/scripts/tomav-renew-certs
 
 
-Currentcert=/etc/postfix/ssl/cert.pem
+Currentcert=/etc/postfix/ssl/cert # should not be changed, hardcoded in mailserver
 Newcert=/tmp/ssl/fullchain.pem
-Currentkey=/etc/postfix/ssl/key.pem
+Currentkey=/etc/postfix/ssl/key
 Newkey=/tmp/ssl/privkey.pem
 Backupkey="$Newkey.backup"
 Backupcert="$Newcert.backup"
