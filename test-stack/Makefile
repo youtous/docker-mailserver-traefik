@@ -1,22 +1,28 @@
 #!make
 .PHONY: stop start start-acme start-traefik start-mailserver build rebuild help restart init-env
 .DEFAULT_GOAL= help
-STACK_NAME=acme_stack
-COMPOSE_FILE=docker-compose.file.yml
+STACK_NAME?=acme_stack
+STORAGE_STRATEGY?=file
+DOCKER_COMPOSE_FILE="docker-compose.${STORAGE_STRATEGY}.yml"
 
-stop: ## Stop the application.
-	docker-compose -p ${STACK_NAME} -f ${COMPOSE_FILE} down ${ARGS}
+stop: ## Stop the stack.
+	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} down ${ARGS}
 
-start: init-env start-acme start-traefik start-mailserver ## Start the entire stack.
+start: init-env ## Start the entire stack.
+	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} up ${ARGS}
 
-start-acme: # Start ACME part of the stack.
-	docker-compose -p ${STACK_NAME} -f ${COMPOSE_FILE} up pebble challtestsrv ${ARGS}
+start-acme: ## Start ACME part of the stack.
+	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} up pebble challtestsrv ${ARGS}
 
-start-traefik: init-env # Start traefik part of the stack.
-	docker-compose -p ${STACK_NAME} -f ${COMPOSE_FILE} up traefik ${ARGS}
+start-traefik: init-env ## Start traefik part of the stack.
+ifeq ($(STORAGE_STRATEGY),"file")
+	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} up traefik ${ARGS}
+else
+	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} up consul-leader traefik ${ARGS}
+endif
 
-start-mailserver: # Start mailserver part of the stack.
-	docker-compose -p ${STACK_NAME} -f ${COMPOSE_FILE} up mailserver autorenew-mailserver-certs ${ARGS}
+start-mailserver: ## Start mailserver part of the stack.
+	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} up mailserver autorenew-mailserver-certs ${ARGS}
 
 restart: ## Restart the entire stack.
 	make stop ${ARGS}
