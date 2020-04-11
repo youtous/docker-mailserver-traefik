@@ -68,7 +68,7 @@ if [ "$CERTS_SOURCE" = "file" ]; then
 
   start_time=$SECONDS
   while [ ! -f $ACME_SOURCE ] || [ ! -s $ACME_SOURCE ]; do
-      echo "[INFO] $ACME_SOURCE is empty or does not exists. Waiting until file is created..."
+      echo "[INFO] $ACME_SOURCE is empty or does not exist. Waiting until file is created..."
 
       # check if not timeout
       if [[ $(($SECONDS - $start_time )) -gt $INITIAL_TIMEOUT ]]; then
