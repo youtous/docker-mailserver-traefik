@@ -10,9 +10,6 @@ load 'test_helper/common'
 #  - test traefik not same stack, acme.json shared on file system
 #  - traefik v2 test
 
-# kv and not kv : mailserver + traefik + acme already running and certificates generated
-# then launch renew => check certificates are dumpted
-
 function setup() {
   DOCKER_FILE_TESTS="$BATS_TEST_DIRNAME/files/docker-compose.traefik.v1.consul.yml"
   run_setup_file_if_necessary
@@ -61,6 +58,23 @@ function teardown() {
     postfix_dovecot_restarted_regex="postfix: stopped\npostfix: started\ndovecot: stopped\ndovecot: started"
 
     run repeat_until_success_or_timeout 30 sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -zoP '${postfix_dovecot_restarted_regex}'"
+    assert_success
+}
+
+@test "check: initial pull certificates when traefik was already running" {
+    # up a new stack with only mailserver
+    docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
+    docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d traefik consul-leader pebble challtestsrv mailserver
+
+    # wait until certificates are generated for mail.localhost.com
+    run repeat_until_success_or_timeout 120 sh -c "docker logs ${TEST_STACK_NAME}_traefik_1 | grep -F \"Adding certificate for domain(s) mail.localhost.com\""
+    assert_success
+
+    # launch certificate renewer
+    docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d
+
+    # test certificate is added to mailserver
+    run repeat_until_success_or_timeout 30 sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
     assert_success
 }
 
