@@ -2,9 +2,6 @@ load 'libs/bats-support/load'
 load 'libs/bats-assert/load'
 load 'test_helper/common'
 
-# todo :
-#  - renewal of certificated, triggers : new cert and restart of dovecot etc
-
 function setup() {
   DOCKER_FILE_TESTS="$BATS_TEST_DIRNAME/files/docker-compose.traefik.v1.file.yml"
   run_setup_file_if_necessary
