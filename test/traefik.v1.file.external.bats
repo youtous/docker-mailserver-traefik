@@ -4,8 +4,8 @@ load 'test_helper/common'
 
 
 function setup() {
-  DOCKER_FILE_TRAEFIK_TESTS="$BATS_TEST_DIRNAME/files/docker-compose.traefik.v1.consul-external_traefik.yml"
-  DOCKER_FILE_MAILSERVER_TESTS="$BATS_TEST_DIRNAME/files/docker-compose.traefik.v1.consul-external_mailserver.yml"
+  DOCKER_FILE_TRAEFIK_TESTS="$BATS_TEST_DIRNAME/files/docker-compose.traefik.v1.file-external_traefik.yml"
+  DOCKER_FILE_MAILSERVER_TESTS="$BATS_TEST_DIRNAME/files/docker-compose.traefik.v1.file-external_mailserver.yml"
   TEST_STACK_NAME_TRAEFIK="${TEST_STACK_NAME}_traefik"
   TEST_STACK_NAME_MAILSERVER="${TEST_STACK_NAME}_mailserver"
   run_setup_file_if_necessary
@@ -25,7 +25,7 @@ function teardown() {
     docker-compose -p "$TEST_STACK_NAME_MAILSERVER" -f "$DOCKER_FILE_MAILSERVER_TESTS" up -d mailserver
 
     # wait until certificates are generated for mail.localhost.com
-    run repeat_until_success_or_timeout 200 sh -c "docker logs ${TEST_STACK_NAME_TRAEFIK}_traefik_1 | grep -F \"Got certificate for domains [mail.localhost.com]\""
+    run repeat_until_success_or_timeout 200 sh -c "docker logs ${TEST_STACK_NAME_TRAEFIK}_traefik_1 | grep -F \"Adding certificate for domain(s) mail.localhost.com\""
     assert_success
 
     # launch certificate renewer
@@ -54,7 +54,9 @@ setup_file() {
   docker-compose -p "$TEST_STACK_NAME_MAILSERVER" -f "$DOCKER_FILE_MAILSERVER_TESTS" down -v --remove-orphans
 
   docker network create test-traefik-public-external || true
-  docker network create test-consul-external || true
+
+  docker volume rm test-acme-external || true
+  docker volume create test-acme-external || true
 }
 
 teardown_file() {
@@ -62,5 +64,5 @@ teardown_file() {
   docker-compose -p "$TEST_STACK_NAME_MAILSERVER" -f "$DOCKER_FILE_MAILSERVER_TESTS" down -v --remove-orphans
 
   docker network rm test-traefik-public-external || true
-  docker network rm test-consul-external || true
+  docker volume rm test-acme-external || true
 }
