@@ -73,33 +73,45 @@ if [ "$CERTS_SOURCE" = "file" ]; then
   traefik-certs-dumper file\
     --version "v$TRAEFIK_VERSION"\
     --clean\
-    --source $ACME_SOURCE\
-    --dest $SSL_DEST\
+    --source "$ACME_SOURCE"\
+    --dest "$SSL_DEST"\
     --domain-subdir\
     --watch\
-    --crt-name=$CERT_NAME\
-    --crt-ext $CERT_EXTENSION\
-    --key-name=$KEY_NAME\
-    --key-ext=$KEY_EXTENSION\
-    --post-hook $POST_HOOK
+    --crt-name "$CERT_NAME"\
+    --crt-ext "$CERT_EXTENSION"\
+    --key-name "$KEY_NAME"\
+    --key-ext "$KEY_EXTENSION"\
+    --post-hook "$POST_HOOK"
 
 elif [ "$CERTS_SOURCE" = "consul" ]; then
 
   # shellcheck disable=SC2059
   printf "[INFO] KV Store configuration: endpoints=$KV_ENDPOINTS, username=$KV_USERNAME,
-          timeout=$KV_TIMEOUT, prefix=$KV_PREFIX, suffix=$KV_SUFFIX
-          ca_optional=$KV_TLS_CA_OPTIONAL, tls_trust_insecure=$KV_TLS_TRUST_INSECURE"
+          timeout=$KV_TIMEOUT, prefix=$KV_PREFIX, suffix=$KV_SUFFIX, tls=$KL_TLS_ENABLED,
+          ca_optional=$KV_TLS_CA_OPTIONAL, tls_trust_insecure=$KV_TLS_TRUST_INSECURE\n\n"
 
   start_with_handle_kv_error traefik-certs-dumper kv "$CERTS_SOURCE"\
         --endpoints "$KV_ENDPOINTS"\
         --clean\
-        --dest $SSL_DEST\
-        --domain-subdir --watch\
-        --crt-name=$CERT_NAME\
-        --crt-ext $CERT_EXTENSION\
-        --key-name=$KEY_NAME\
-        --key-ext=$KEY_EXTENSION\
-        --post-hook $POST_HOOK
+        --dest "$SSL_DEST"\
+        --domain-subdir\
+        --watch\
+        --crt-name "$CERT_NAME"\
+        --crt-ext "$CERT_EXTENSION"\
+        --key-name "$KEY_NAME"\
+        --key-ext "$KEY_EXTENSION"\
+        --prefix "$KV_SUFFIX"\
+        --suffix "$KV_PREFIX"\
+        "$( if [ -n "$KV_TIMEOUT" ]; then echo "--connection-timeout $KV_TIMEOUT"; fi )"\
+        "$( if [ -n "$KV_USERNAME" ]; then echo "--username $KV_USERNAME"; fi )"\
+        "$( if [ -n "$KV_PASSWORD"  ]; then echo "--password $KV_PASSWORD"; fi )"\
+        "$( if [ -n "$KV_TLS_CA"  ]; then echo "--tls.ca $KV_TLS_CA"; fi )"\
+        "$( if [ -n "$KV_TLS_CERT"  ]; then echo "--tls.cert $KV_TLS_CERT"; fi )"\
+        "$( if [ -n "$KV_TLS_KEY"  ]; then echo "--tls.key $KV_TLS_KEY"; fi )"\
+        "$( if [ "$KL_TLS_ENABLED" -eq 1 ]; then echo "--tls"; fi )"\
+        "$( if [ "$KV_TLS_CA_OPTIONAL" -eq 1 ]; then echo "--tls.ca.optional"; fi )"\
+        "$( if [ "$KV_TLS_TRUST_INSECURE" -eq 1 ]; then echo "--tls.insecureskipverify"; fi )"\
+        --post-hook "$POST_HOOK"
 
 elif [ "$CERTS_SOURCE" = "boltdb" ]; then
     echo ""

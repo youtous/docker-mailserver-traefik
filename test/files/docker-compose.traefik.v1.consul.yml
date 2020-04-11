@@ -97,6 +97,7 @@ services:
       - 'CONSUL_LOCAL_CONFIG={"leave_on_terminate": true}'
     networks:
       internal:
+      bluenet:
 
 networks:
   internal: # no internet acess

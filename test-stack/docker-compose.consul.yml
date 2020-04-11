@@ -102,7 +102,7 @@ services:
       bluenet:
         ipv4_address: 10.77.77.66
 
-  consul-leader: # todo : disable update and usage in config file
+  consul-leader:
     image: consul
     command: agent -server -client=0.0.0.0 -bootstrap -ui
     volumes:
@@ -117,6 +117,7 @@ services:
       - traefik.frontend.entryPoints=https
     networks:
       internal:
+      bluenet:
 
 networks:
   internal:
