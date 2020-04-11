@@ -3,7 +3,7 @@ load 'libs/bats-assert/load'
 load 'test_helper/common'
 
 function setup() {
-  DOCKER_FILE_TESTS="$BATS_TEST_DIRNAME/files/docker-compose.traefik.v1.consul.yml"
+  DOCKER_FILE_TESTS="$BATS_TEST_DIRNAME/files/docker-compose.traefik.v2.consul.yml"
   run_setup_file_if_necessary
 }
 
@@ -15,11 +15,6 @@ function teardown() {
     skip 'only used to call setup_file from setup'
 }
 
-@test "check: push certificate for mail.localhost.com trigged" {
-
-  run repeat_until_success_or_timeout 60 sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F 'Pushing mail.localhost.com to'"
-  assert_success
-}
 
 @test "check: certificate mail.localhost.com received on mailserver container" {
 
@@ -35,24 +30,6 @@ function teardown() {
     run docker exec "${TEST_STACK_NAME}_mailserver_1" ls /etc/postfix/ssl/
     assert_output --partial 'cert'
     assert_output --partial 'key'
-}
-
-@test "check: dovecot and postfix restarted using supervisorctl after certificate push" {
-
-    # up a new stack with only mailserver
-    docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
-    docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver
-
-    # wait until mailserver is up
-    repeat_until_success_or_timeout 60 sh -c "docker logs ${TEST_STACK_NAME}_mailserver_1 | grep -F 'mail.localhost.com is up and running'"
-
-    # enable certificate generation
-    docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d
-
-    postfix_dovecot_restarted_regex="postfix: stopped\npostfix: started\ndovecot: stopped\ndovecot: started"
-
-    run repeat_until_success_or_timeout 30 sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -zoP '${postfix_dovecot_restarted_regex}'"
-    assert_success
 }
 
 @test "last" {

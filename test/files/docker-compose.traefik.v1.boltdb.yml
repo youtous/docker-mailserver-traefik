@@ -7,9 +7,10 @@ services:
     image: mailserver-traefik:test-image
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - boltdb:/tmp/boltdb/:ro
     environment:
-      - CERTS_SOURCE=consul
-      - KV_ENDPOINTS=consul-leader:8500
+      - CERTS_SOURCE=boltdb
+      - KV_ENDPOINTS=/tmp/boltdb/my.db
       - DOMAINS=mail.localhost.com
     networks:
       - internal
@@ -69,8 +70,9 @@ services:
       - acme.localhost.com:10.77.77.77 # test ACME server (peeble)
     volumes:
       - ./common/peeble/certs/pebble.minica.pem:/usr/local/share/ca-certificates/pebble.minica.pem:ro # import peeble RootCA
-      - "./common/traefik.v1.consul.toml:/etc/traefik/conf/acme.toml:ro"
+      - "./common/traefik.v1.boltdb.toml:/etc/traefik/conf/acme.toml:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - boltdb:/tmp/boltdb/:rw
     ports:
       - "80:80"
       - "443:443"
@@ -83,21 +85,9 @@ services:
       - "traefik.frontend.rule=Host:traefik.localhost.com"
       - "traefik.enable=true"
     networks:
-      internal:
       bluenet:
         ipv4_address: 10.77.77.66
 
-  consul-leader:
-    image: consul
-    command: agent -server -client=0.0.0.0 -bootstrap
-    volumes:
-      - consul-data-leader:/consul/data
-    environment:
-      - CONSUL_BIND_INTERFACE=eth0
-      - 'CONSUL_LOCAL_CONFIG={"leave_on_terminate": true}'
-    networks:
-      internal:
-      bluenet:
 
 networks:
   internal: # no internet acess
@@ -110,7 +100,7 @@ networks:
         - subnet: 10.77.77.0/24
 
 volumes:
-  consul-data-leader:
+  boltdb:
     driver: local
   maildata:
     driver: local
