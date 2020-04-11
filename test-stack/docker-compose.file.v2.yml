@@ -23,7 +23,7 @@ services:
     hostname: mail
     domainname: localhost.com
     labels:
-      - "mailserver-traefik-autorenew-domain=mail.localhost.com"
+      - "mailserver-traefik.renew.domain=mail.localhost.com"
       - "traefik.enable=true"
       - "traefik.http.routers.mail.rule=Host(`mail.localhost.com`)" # traefik ACME will handle creation of certificates for this domain
       - "traefik.http.routers.mail.entrypoints=websecure"
