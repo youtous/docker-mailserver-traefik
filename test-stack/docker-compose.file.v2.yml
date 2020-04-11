@@ -16,7 +16,7 @@ services:
       - traefik.frontend.entryPoints=https
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - "./acme.json:/tmp/acme.json" # acme.json from Traefik
+      - "./acme.json:/tmp/traefik/acme.json" # acme.json from Traefik
       - "./ssl:/tmp/ssl:rw" # dev only, todo remove
     environment:
       - TRAEFIK_VERSION=1
@@ -42,6 +42,7 @@ services:
       - mailstate:/var/mail-state
       - maillogs:/var/log/mail
       - ./.mailserver-config/:/tmp/docker-mailserver/
+      - ./.mailserver-config/dh-dovecot.pem:/etc/dovecot/dh.pem:ro # saving us computation
     env_file:
       - .mailserver.env
     networks:

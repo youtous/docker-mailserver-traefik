@@ -35,6 +35,7 @@ RUN chmod +x /tomav-renew-certs.bash
 
 ENV SSL_DEST=/tmp/ssl
 VOLUME $SSL_DEST
+VOLUME /tmp/traefik
 
 # override entrypoint
 WORKDIR /

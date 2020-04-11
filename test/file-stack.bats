@@ -9,6 +9,7 @@ load 'test_helper/common'
 #  - renewal of certificated, triggers : new cert and restart of dovecot etc
 #  - test with consul external network
 #  - test traefik not same stack, acme.json shared on file system
+#  - traefik v2 test
 
 function setup() {
   run_setup_file_if_necessary

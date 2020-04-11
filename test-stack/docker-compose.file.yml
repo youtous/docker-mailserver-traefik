@@ -9,7 +9,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - "./acme.json:/tmp/acme.json:ro" # acme.json from Traefik
+      - "./acme.json:/tmp/traefik/acme.json:ro" # acme.json from Traefik
     environment:
       - TRAEFIK_VERSION=1
       - CERTS_SOURCE=file
@@ -37,6 +37,7 @@ services:
       - mailstate:/var/mail-state
       - maillogs:/var/log/mail
       - ./.mailserver-config/:/tmp/docker-mailserver/
+      - ./.mailserver-config/dh-dovecot.pem:/etc/dovecot/dh.pem:ro # saving us computation
     env_file:
       - .mailserver.env
     environment:

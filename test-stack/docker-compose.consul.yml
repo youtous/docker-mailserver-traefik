@@ -42,6 +42,7 @@ services:
       - mailstate:/var/mail-state
       - maillogs:/var/log/mail
       - ./.mailserver-config/:/tmp/docker-mailserver/
+      - ./.mailserver-config/dh-dovecot.pem:/etc/dovecot/dh.pem:ro # saving us computation
     env_file:
       - .mailserver.env
     networks:

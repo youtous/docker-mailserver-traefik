@@ -30,7 +30,7 @@ rm -Rf "$SSL_DEST/*"
 # watch for certificate renewed
 echo "[INFO] $CERTS_SOURCE selected as certificates source"
 if [ "$CERTS_SOURCE" = "file" ]; then
-  ACME_SOURCE=/tmp/acme.json
+  ACME_SOURCE=/tmp/traefik/acme.json
 
   while [ ! -f $ACME_SOURCE ] || [ ! -s $ACME_SOURCE ]; do
       echo "[INFO] $ACME_SOURCE is empty or does not exists. Waiting until file is created..."
