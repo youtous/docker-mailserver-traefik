@@ -10,7 +10,7 @@ services:
     environment:
       - CERTS_SOURCE=consul
       - DOMAINS=mail.localhost.com
-      - KV_ENDPOINTS=[consul-leader:8500]
+      - KV_ENDPOINTS=consul-leader:8500
     networks:
       - internal
 

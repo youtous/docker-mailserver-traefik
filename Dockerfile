@@ -6,7 +6,7 @@ LABEL description "Automatically renew tomav/docker-mailserver certificates usin
 ENV TRAEFIK_VERSION=1\
     CERTS_SOURCE=consul\
     DOMAINS=mail.youtous.dv\
-    KV_ENDPOINTS=[localhost:8500]\
+    KV_ENDPOINTS=localhost:8500\
     KV_USERNAME=\
     KV_PASSWORD=\
     KV_TIMEOUT=\
@@ -23,6 +23,7 @@ ENV TRAEFIK_VERSION=1\
     KV_BOLTDB_PERSIST_CONNECTION=0\
     KV_ETCD_VERSION=etcd\
     KV_ETCD_SYNC_PERIOD=\
+    INITIAL_TIMEOUT=300\
     SSL_DEST=/tmp/ssl
 
 # Install docker client, bash

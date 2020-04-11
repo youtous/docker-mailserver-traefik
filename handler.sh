@@ -7,9 +7,6 @@
 
 # helper for keeping restarting a command while KV is not ready
 function start_with_handle_kv_error() {
-
-  # after 200 sec, lack of connection is considered as a failure
-  timeout_kv_attempt=200
   start_time=$SECONDS
 
   must_continue=true
@@ -29,9 +26,9 @@ function start_with_handle_kv_error() {
     fi
 
     # check if restart does not timeout
-    if [[ $(($SECONDS - $start_time )) -gt $timeout_kv_attempt ]]; then
+    if [[ $(($SECONDS - $start_time )) -gt $INITIAL_TIMEOUT ]]; then
       echo "$errors" >/dev/stderr
-      echo "[ERROR] Timed out on command kv connection (${timeout_kv_attempt}s)"
+      echo "[ERROR] Timed out on initial kv connection (initial timeout=${INITIAL_TIMEOUT}s)"
       return 1
     fi
 
@@ -69,8 +66,16 @@ if [ "$CERTS_SOURCE" = "file" ]; then
 
   ACME_SOURCE=/tmp/traefik/acme.json
 
+  start_time=$SECONDS
   while [ ! -f $ACME_SOURCE ] || [ ! -s $ACME_SOURCE ]; do
       echo "[INFO] $ACME_SOURCE is empty or does not exists. Waiting until file is created..."
+
+      # check if not timeout
+      if [[ $(($SECONDS - $start_time )) -gt $INITIAL_TIMEOUT ]]; then
+        echo "$errors" >/dev/stderr
+        echo "[ERROR] Timed out on initial acme ($ACME_SOURCE) watching (initial timeout=${INITIAL_TIMEOUT}s)"
+        return 1
+      fi
       sleep 5
   done
 
@@ -115,8 +120,8 @@ elif [ "$CERTS_SOURCE" = "consul" ]; then
         --crt-ext "$CERT_EXTENSION"\
         --key-name "$KEY_NAME"\
         --key-ext "$KEY_EXTENSION"\
-        --prefix "$KV_SUFFIX"\
-        --suffix "$KV_PREFIX"\
+        --prefix "$KV_PREFIX"\
+        --suffix "$KV_SUFFIX"\
         "$( if [ -n "$KV_TIMEOUT" ]; then echo "--connection-timeout $KV_TIMEOUT"; fi )"\
         "$( if [ -n "$KV_USERNAME" ]; then echo "--username $KV_USERNAME"; fi )"\
         "$( if [ -n "$KV_PASSWORD"  ]; then echo "--password $KV_PASSWORD"; fi )"\
