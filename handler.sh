@@ -28,7 +28,7 @@ function start_with_handle_kv_error() {
     # check if restart does not timeout
     if [[ $(($SECONDS - $start_time )) -gt $INITIAL_TIMEOUT ]]; then
       echo "$errors" >/dev/stderr
-      echo "[ERROR] Timed out on initial kv connection (initial timeout=${INITIAL_TIMEOUT}s)"
+      echo "[ERROR] Timed out on initial kv connection (initial timeout=${INITIAL_TIMEOUT}s), please check KV config and ensure KV Store is up"
       return 1
     fi
 
