@@ -7,17 +7,32 @@
 
 # helper for keeping restarting a command while KV is not ready
 function start_with_handle_kv_error() {
+
+  # after 200 sec, lack of connection is considered as a failure
+  timeout_kv_attempt=200
+  start_time=$SECONDS
+
   must_continue=true
   while [ $must_continue ]; do
+    # echo "debug command : $@ "
     { errors=$("$@" 2>&1 >&3 3>&-); } 3>&1
     # echo "copy of stderr: $errors"
     must_continue=$( echo "$errors" | grep -Fq 'could not fetch Key/Value pair for key' && echo 1 || echo 0)
+
     if [ "$must_continue" ]; then
         # silence KV error
-        echo "[INFO] KV Store does not exists. Waiting until KV is populated by traefik..."
+        echo "[INFO] KV Store (/$KV_PREFIX$KV_SUFFIX) not accessible. Waiting until KV is up and populated by traefik.."
     else
       # fatal error
       echo "$errors" >/dev/stderr
+      return 1
+    fi
+
+    # check if restart does not timeout
+    if [[ $(($SECONDS - $start_time )) -gt $timeout_kv_attempt ]]; then
+      echo "$errors" >/dev/stderr
+      echo "[ERROR] Timed out on command kv connection (${timeout_kv_attempt}s)"
+      return 1
     fi
 
     # wait before retrying
