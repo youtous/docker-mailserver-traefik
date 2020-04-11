@@ -21,10 +21,9 @@ services:
     domainname: localhost.com
     labels:
       - "mailserver-traefik.renew.domain=mail.localhost.com"
-      - "traefik.http.routers.whoami.rule=Host(`mail.localhost.com`)"
-      - "traefik.http.routers.whoami.entrypoints=websecure"
-      - "traefik.http.routers.whoami.tls.certresolver=myresolver"
       - "traefik.enable=true"
+      - "traefik.http.routers.mail.rule=Host(`mail.localhost.com`)" # traefik ACME will handle creation of certificates for this domain
+      - "traefik.http.routers.mail.entrypoints=websecure"
     volumes:
       - maildata:/var/mail
       - mailstate:/var/mail-state
@@ -66,13 +65,13 @@ services:
 
   ### Traefik part ###
   traefik:
-    image: "traefik:v2.0.0-rc3-alpine"
+    image: "traefik:v2.2"
     command: /bin/sh -c 'update-ca-certificates && traefik --configFile=/etc/traefik/conf/acme.toml'
     extra_hosts:
       - acme.localhost.com:10.77.77.77 # test ACME server (peeble)
     volumes:
       - ./common/peeble/certs/pebble.minica.pem:/usr/local/share/ca-certificates/pebble.minica.pem:ro # import peeble RootCA
-      - "./common/traefik.v1.file.toml:/etc/traefik/ceonf/acme.toml:ro"
+      - "./common/traefik.v2.file.toml:/etc/traefik/conf/acme.toml:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - acme:/tmp/acme:rw
     ports:
@@ -81,9 +80,9 @@ services:
       - "5002:5002" # Needed for HTTP challenge
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.traefik.rule=Host(`traefik.localhost.com`)"
-      - "traefik.http.services.traefik.loadbalancer.server.port=80"
-      - "traefik.http.services.traefik.tls.certresolver=myresolver"
+      - "traefik.http.routers.api.rule=Host(`traefik.localhost.com`)"
+      - "traefik.http.routers.api.service=api@internal"
+      - "traefik.http.routers.api.entrypoints=websecure"
     networks:
       bluenet:
         ipv4_address: 10.77.77.66

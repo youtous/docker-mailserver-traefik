@@ -9,6 +9,7 @@ The goal of this stack is to provide an environment for testing certificates ext
 
 Learn more about **peeble**: https://github.com/letsencrypt/pebble
 
+Requires docker-compose installed.
 
 ## Basic Usage
 
