@@ -7,31 +7,23 @@ services:
     build:
       context: ./../
       dockerfile: Dockerfile
-    labels:
-      - "traefik.frontend.rule=Host:mail.localhost.com" # traefik ACME will handle creation of certificates for this domain
-      - traefik.frontend.redirect.replacement=http://localhost.com/ # redirect access to smtp/imap domain to and other domain (e.g. webmail)
-      - traefik.frontend.redirect.regex=.*
-      - traefik.port=8080 # dummy port, used only to trigger certificate renewal
-      - traefik.enable=true
-      - traefik.frontend.entryPoints=https
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./ssl:/tmp/ssl
     environment:
-      - TRAEFIK_VERSION=1
       - CERTS_SOURCE=consul
-      - DOMAIN=mail.localhost.com
+      - DOMAINS=mail.localhost.com
       - KV_ENDPOINTS=[consul-leader:8500]
     networks:
-      bluenet:
-        ipv4_address: 10.77.77.88
+      - internal
 
   mailserver:
     image: tvial/docker-mailserver:latest
     hostname: mail
     domainname: localhost.com
     labels:
-      - "mailserver-traefik-autorenew-domain=mail.localhost.com"
+      - "mailserver-traefik.renew.domain=mail.localhost.com"
+      - "traefik.frontend.rule=Host:mail.localhost.com" # traefik ACME will handle creation of certificates for this domain
+      - "traefik.enable=true"
     ports:
       - "25:25"
       - "143:143"
@@ -45,6 +37,10 @@ services:
       - ./.mailserver-config/dh-dovecot.pem:/etc/dovecot/dh.pem:ro # saving us computation
     env_file:
       - .mailserver.env
+    environment:
+      - SSL_TYPE=manual
+      - SSL_CERT_PATH=/etc/postfix/ssl/cert
+      - SSL_KEY_PATH=/etc/postfix/ssl/key
     networks:
       bluenet:
         ipv4_address: 10.77.77.44
@@ -101,12 +97,12 @@ services:
       - "traefik.enable=true"
     depends_on:
       - consul-leader
-      - pebble
     networks:
+      internal:
       bluenet:
         ipv4_address: 10.77.77.66
 
-  consul-leader:
+  consul-leader: # todo : disable update and usage in config file
     image: consul
     command: agent -server -client=0.0.0.0 -bootstrap -ui
     volumes:
@@ -120,10 +116,11 @@ services:
       - traefik.port=8500
       - traefik.frontend.entryPoints=https
     networks:
-      bluenet:
-        ipv4_address: 10.77.77.62
+      internal:
 
 networks:
+  internal:
+    internal: true
   bluenet:
     driver: bridge
     ipam:
