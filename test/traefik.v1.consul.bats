@@ -3,8 +3,10 @@ load 'libs/bats-assert/load'
 load 'test_helper/common'
 
 # todo :
-#  - single domain copied to multiserver
 #  - traefik v2 test
+#  - zookeeper test
+#  - etcd test
+#  - boltdb test
 
 function setup() {
   DOCKER_FILE_TESTS="$BATS_TEST_DIRNAME/files/docker-compose.traefik.v1.consul.yml"
