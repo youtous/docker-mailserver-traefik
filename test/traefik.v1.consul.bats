@@ -6,7 +6,6 @@ load 'test_helper/common'
 #  - test if cert copied from empty consul stack
 #  - multidomain, copied to multiservers
 #  - single domain copied to multiserver
-#  - renewal of certificated, triggers : new cert and restart of dovecot etc
 #  - test with consul external network
 #  - test traefik not same stack, acme.json shared on file system
 #  - traefik v2 test
@@ -21,27 +20,6 @@ function teardown() {
 
 @test "first" {
     skip 'only used to call setup_file from setup'
-}
-
-@test "check: missing certificates on mailserver" {
-  run docker exec "${TEST_STACK_NAME}_mailserver_1" ls /etc/postfix/ssl/key
-  assert_output --partial 'No such file or directory'
-  run docker exec "${TEST_STACK_NAME}_mailserver_1" ls /etc/postfix/ssl/cert
-  assert_output --partial 'No such file or directory'
-}
-
-@test "check: mailserver-traefik waits when no key" {
-  # wait until traefik built ACME file
-  run repeat_until_success_or_timeout 20 sh -c "docker logs ${TEST_STACK_NAME}_traefik_1 | grep -F 'Building ACME client...'"
-  assert_success
-
-  run repeat_until_success_or_timeout 30 sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F 'Traefik acme is generating. Waiting until completed...'"
-  assert_success
-}
-
-@test "modify: restart the stack with pebble (ACME server)" {
-    docker-compose -p "$TEST_STACK_NAME" -f "$BATS_TEST_DIRNAME/files/docker-compose.file.yml" down -v --remove-orphans
-    docker-compose -p "$TEST_STACK_NAME" -f "$BATS_TEST_DIRNAME/files/docker-compose.file.yml" up -d
 }
 
 @test "check: push certificate for mail.localhost.com trigged" {
@@ -67,14 +45,14 @@ function teardown() {
 @test "check: dovecot and postfix restarted using supervisorctl after certificate push" {
 
     # up a new stack with only mailserver
-    docker-compose -p "$TEST_STACK_NAME" -f "$BATS_TEST_DIRNAME/files/docker-compose.file.yml" down -v --remove-orphans
-    docker-compose -p "$TEST_STACK_NAME" -f "$BATS_TEST_DIRNAME/files/docker-compose.file.yml" up -d mailserver
+    docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
+    docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver
 
     # wait until mailserver is up
     repeat_until_success_or_timeout 60 sh -c "docker logs ${TEST_STACK_NAME}_mailserver_1 | grep -F 'mail.localhost.com is up and running'"
 
     # enable certificate generation
-    docker-compose -p "$TEST_STACK_NAME" -f "$BATS_TEST_DIRNAME/files/docker-compose.file.yml" up -d
+    docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d
 
     postfix_dovecot_restarted_regex="postfix: stopped\npostfix: started\ndovecot: stopped\ndovecot: started"
 
@@ -87,10 +65,12 @@ function teardown() {
 }
 
 setup_file() {
-  docker-compose -p "$TEST_STACK_NAME" -f "$BATS_TEST_DIRNAME/files/docker-compose.file.yml" down -v --remove-orphans
-  docker-compose -p "$TEST_STACK_NAME" -f "$BATS_TEST_DIRNAME/files/docker-compose.file.yml" up -d traefik mailserver mailserver-traefik
+  DOCKER_FILE_TESTS="$BATS_TEST_DIRNAME/files/docker-compose.traefik.v1.consul.yml"
+  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
+  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d
 }
 
 teardown_file() {
-  docker-compose -p "$TEST_STACK_NAME" -f "$BATS_TEST_DIRNAME/files/docker-compose.file.yml" down -v --remove-orphans
+  unset DOCKER_FILE_TESTS
+  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
 }

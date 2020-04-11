@@ -4,16 +4,13 @@ services:
 
   ### Autorenew docker-mailserver part ###
   mailserver-traefik:
-    build:
-      context: ./../
-      dockerfile: Dockerfile
+    image: mailserver-traefik:test-image
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - "./acme.json:/tmp/traefik/acme.json:ro" # acme.json from Traefik
     environment:
-      - TRAEFIK_VERSION=1
-      - CERTS_SOURCE=file
-      - DOMAINS=mail.localhost.com,mailserver2.localhost.com
+      - CERTS_SOURCE=consul
+      - DOMAINS=mail.localhost.com
+      - KV_ENDPOINTS=[consul-leader:8500]
     networks:
       - internal
 
@@ -24,22 +21,15 @@ services:
     labels:
       - "mailserver-traefik.renew.domain=mail.localhost.com"
       - "traefik.frontend.rule=Host:mail.localhost.com" # traefik ACME will handle creation of certificates for this domain
-      - "traefik.frontend.redirect.replacement=https://webmail.localhost.com/" # redirect access to smtp/imap domain to and other domain (e.g. webmail or autoconfig)
-      - "traefik.frontend.redirect.regex=.*"
       - "traefik.enable=true"
-    ports:
-      - "25:25"
-      - "143:143"
-      - "587:587"
-      - "993:993"
     volumes:
       - maildata:/var/mail
       - mailstate:/var/mail-state
       - maillogs:/var/log/mail
-      - ./.mailserver-config/:/tmp/docker-mailserver/
-      - ./.mailserver-config/dh-dovecot.pem:/etc/dovecot/dh.pem:ro # saving us computation
+      - ./common/.mailserver-config/:/tmp/docker-mailserver/
+      - ./common/.mailserver-config/dh-dovecot.pem:/etc/dovecot/dh.pem:ro # saving us computation
     env_file:
-      - .mailserver.env
+      - ./common/.mailserver.env
     environment:
       - SSL_TYPE=manual
       - SSL_CERT_PATH=/etc/postfix/ssl/cert
@@ -52,16 +42,13 @@ services:
   pebble:
     image: letsencrypt/pebble
     command: pebble -config /test/my-pebble-config.json -dnsserver 10.77.77.22:8053
-    ports:
-      - 4001:4001  # ACME port
-      - 15000:15000  # Management port
     environment:
       - PEBBLE_VA_NOSLEEP=1
     extra_hosts:
       - acme.localhost.com:10.77.77.77 # test ACME server (peeble)
     volumes:
-      - ./peeble/certs/:/test/certs/:ro # import peeble RootCA
-      - ./peeble/peeble-config.json:/test/my-pebble-config.json:ro
+      - ./common/peeble/certs/:/test/certs/:ro # import peeble RootCA
+      - ./common/peeble/peeble-config.json:/test/my-pebble-config.json:ro
     networks:
       bluenet:
         ipv4_address: 10.77.77.77
@@ -70,8 +57,6 @@ services:
   challtestsrv: # dns server for pebble
     image: letsencrypt/pebble-challtestsrv:latest
     command: pebble-challtestsrv -defaultIPv6 "" -defaultIPv4 10.77.77.66 # mock DNS responses to traefik
-    ports:
-      - 8055:8055  # HTTP Management API
     networks:
       bluenet:
         ipv4_address: 10.77.77.22
@@ -83,10 +68,9 @@ services:
     extra_hosts:
       - acme.localhost.com:10.77.77.77 # test ACME server (peeble)
     volumes:
-      - ./peeble/certs/pebble.minica.pem:/usr/local/share/ca-certificates/pebble.minica.pem:ro # import peeble RootCA
-      - "./acme.file.toml:/etc/traefik/conf/acme.toml:ro"
+      - ./common/peeble/certs/pebble.minica.pem:/usr/local/share/ca-certificates/pebble.minica.pem:ro # import peeble RootCA
+      - "./common/traefik.v1.consul.toml:/etc/traefik/conf/acme.toml:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "./acme.json:/etc/traefik/conf/acme.json:rw"
     ports:
       - "80:80"
       - "443:443"
@@ -99,9 +83,20 @@ services:
       - "traefik.frontend.rule=Host:traefik.localhost.com"
       - "traefik.enable=true"
     networks:
+      internal:
       bluenet:
         ipv4_address: 10.77.77.66
 
+  consul-leader:
+    image: consul
+    command: agent -server -client=0.0.0.0 -bootstrap
+    volumes:
+      - consul-data-leader:/consul/data
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
+      - 'CONSUL_LOCAL_CONFIG={"leave_on_terminate": true}'
+    networks:
+      internal:
 
 networks:
   internal: # no internet acess
@@ -114,6 +109,8 @@ networks:
         - subnet: 10.77.77.0/24
 
 volumes:
+  consul-data-leader:
+    driver: local
   maildata:
     driver: local
   mailstate:
