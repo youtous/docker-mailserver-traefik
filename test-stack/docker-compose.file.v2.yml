@@ -17,7 +17,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - "./acme.json:/tmp/traefik/acme.json" # acme.json from Traefik
-      - "./ssl:/tmp/ssl:rw" # dev only, todo remove
     environment:
       - TRAEFIK_VERSION=1
       - CERTS_SOURCE=file
@@ -79,48 +78,41 @@ services:
 
   ### Traefik part ###
   traefik:
+    image: "traefik:v2.0.0-rc3-alpine"
     extra_hosts:
       - acme.localhost.com:10.77.77.77 # test ACME server (peeble)
+    command: /bin/sh -c 'update-ca-certificates && traefik --configFile=/etc/traefik/conf/acme.toml'
+    volumes:
+      - ./peeble/certs/pebble.minica.pem:/usr/local/share/ca-certificates/pebble.minica.pem:ro # import peeble RootCA
+      - "./traefik.v2.file.toml:/etc/traefik/conf/acme.toml:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./acme.json:/etc/traefik/conf/acme.json:rw"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.localhost.com`)"
+      - "traefik.http.routers.traefik.entrypoints=web"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.middlewares.traefik-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.traefik.middlewares=traefik-https-redirect"
+      - "traefik.http.routers.traefik-secure.entrypoints=https"
+      - "traefik.http.routers.traefik-secure.rule=Host(`traefik.localhost.com`)"
+      - "traefik.http.routers.traefik-secure.tls=true"
+      - "traefik.http.routers.traefik-secure.tls.certresolver=myresolver"
+      - "traefik.http.routers.traefik-secure.service=api@internal"
+      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+      - "traefik.docker.network=traefik-public"
     ports:
       - "80:80"
       - "443:443"
       - "5002:5002" # Needed for HTTP challenge
-    image: "traefik:v2.0.0-rc3-alpine"
-    command: >
-      /bin/sh -c 'update-ca-certificates && traefik
-      --log.level=DEBUG
-      --api.insecure=true
-      --providers.docker=true
-      --providers.docker.exposedbydefault=false
-      --entrypoints.web.address=:80
-      --entrypoints.websecure.address=:443
-      --entrypoints.webhttpchallenge.address=:5002
-      --certificatesresolvers.myresolver.acme.httpchallenge=true
-      --certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=webhttpchallenge
-      --certificatesresolvers.myresolver.acme.caserver=https://acme.localhost.com:4001/dir
-      --certificatesresolvers.myresolver.acme.email=test@localhost.com
-      --certificatesresolvers.myresolver.acme.storage=/acme.json'
-    volumes:
-      - ./peeble/certs/pebble.minica.pem:/usr/local/share/ca-certificates/pebble.minica.pem:ro # import peeble RootCA
-      - "./acme.json:/acme.json:rw"
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
     networks:
+      traefik-public:
       bluenet:
         ipv4_address: 10.77.77.66
 
-  whoami:
-    image: "containous/whoami"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.whoami.rule=Host(`mail.localhost.com`)"
-      - "traefik.http.routers.whoami.entrypoints=websecure"
-      - "traefik.http.routers.whoami.tls.certresolver=myresolver"
-    networks:
-      bluenet:
-        ipv4_address: 10.77.77.95
-
 
 networks:
+  traefik-public:
   bluenet:
     driver: bridge
     ipam:
