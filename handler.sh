@@ -110,7 +110,102 @@ if [ "$CERTS_SOURCE" = "file" ]; then
 elif [ "$CERTS_SOURCE" = "consul" ]; then
 
   # shellcheck disable=SC2059
-  printf "[INFO] KV Store configuration: endpoints=$KV_ENDPOINTS, username=$KV_USERNAME,
+  printf "[INFO] $CERTS_SOURCE KV Store configuration: endpoints=$KV_ENDPOINTS, username=$KV_USERNAME,
+          timeout=$KV_TIMEOUT, prefix=$KV_PREFIX, suffix=$KV_SUFFIX, tls=$KL_TLS_ENABLED,
+          ca_optional=$KV_TLS_CA_OPTIONAL, tls_trust_insecure=$KV_TLS_TRUST_INSECURE\n\n"
+
+  start_with_handle_kv_error traefik-certs-dumper kv "$CERTS_SOURCE"\
+        --endpoints "$KV_ENDPOINTS"\
+        --clean\
+        --dest "$SSL_DEST"\
+        --domain-subdir\
+        --watch\
+        --crt-name "$CERT_NAME"\
+        --crt-ext "$CERT_EXTENSION"\
+        --key-name "$KEY_NAME"\
+        --key-ext "$KEY_EXTENSION"\
+        --prefix "$KV_PREFIX"\
+        --suffix "$KV_SUFFIX"\
+        "$( if [ -n "$KV_TIMEOUT" ]; then echo "--connection-timeout $KV_TIMEOUT"; fi )"\
+        "$( if [ -n "$KV_USERNAME" ]; then echo "--username $KV_USERNAME"; fi )"\
+        "$( if [ -n "$KV_PASSWORD"  ]; then echo "--password $KV_PASSWORD"; fi )"\
+        "$( if [ -n "$KV_TLS_CA"  ]; then echo "--tls.ca $KV_TLS_CA"; fi )"\
+        "$( if [ -n "$KV_TLS_CERT"  ]; then echo "--tls.cert $KV_TLS_CERT"; fi )"\
+        "$( if [ -n "$KV_TLS_KEY"  ]; then echo "--tls.key $KV_TLS_KEY"; fi )"\
+        "$( if [ -n "$KV_CONSUL_TOKEN"  ]; then echo "--token $KV_CONSUL_TOKEN"; fi )"\
+        "$( if [ "$KL_TLS_ENABLED" -eq 1 ]; then echo "--tls"; fi )"\
+        "$( if [ "$KV_TLS_CA_OPTIONAL" -eq 1 ]; then echo "--tls.ca.optional"; fi )"\
+        "$( if [ "$KV_TLS_TRUST_INSECURE" -eq 1 ]; then echo "--tls.insecureskipverify"; fi )"\
+        --post-hook "$POST_HOOK"
+
+elif [ "$CERTS_SOURCE" = "boltdb" ]; then
+
+    # shellcheck disable=SC2059
+  printf "[INFO] $CERTS_SOURCE KV Store configuration: endpoints=$KV_ENDPOINTS, username=$KV_USERNAME,
+          timeout=$KV_TIMEOUT, prefix=$KV_PREFIX, suffix=$KV_SUFFIX, bucket=$KV_BOLTDB_BUCKET,
+          tls=$KL_TLS_ENABLED, ca_optional=$KV_TLS_CA_OPTIONAL, tls_trust_insecure=$KV_TLS_TRUST_INSECURE\n\n"
+
+  start_with_handle_kv_error traefik-certs-dumper kv "$CERTS_SOURCE"\
+        --endpoints "$KV_ENDPOINTS"\
+        --clean\
+        --dest "$SSL_DEST"\
+        --domain-subdir\
+        --watch\
+        --crt-name "$CERT_NAME"\
+        --crt-ext "$CERT_EXTENSION"\
+        --key-name "$KEY_NAME"\
+        --key-ext "$KEY_EXTENSION"\
+        --prefix "$KV_PREFIX"\
+        --suffix "$KV_SUFFIX"\
+        "$( if [ -n "$KV_TIMEOUT" ]; then echo "--connection-timeout $KV_TIMEOUT"; fi )"\
+        "$( if [ -n "$KV_USERNAME" ]; then echo "--username $KV_USERNAME"; fi )"\
+        "$( if [ -n "$KV_PASSWORD"  ]; then echo "--password $KV_PASSWORD"; fi )"\
+        "$( if [ -n "$KV_TLS_CA"  ]; then echo "--tls.ca $KV_TLS_CA"; fi )"\
+        "$( if [ -n "$KV_TLS_CERT"  ]; then echo "--tls.cert $KV_TLS_CERT"; fi )"\
+        "$( if [ -n "$KV_TLS_KEY"  ]; then echo "--tls.key $KV_TLS_KEY"; fi )"\
+        "$( if [ -n "$KV_BOLTDB_BUCKET"  ]; then echo "--bucket $KV_BOLTDB_BUCKET"; fi )"\
+        "$( if [ "$KL_TLS_ENABLED" -eq 1 ]; then echo "--tls"; fi )"\
+        "$( if [ "$KV_TLS_CA_OPTIONAL" -eq 1 ]; then echo "--tls.ca.optional"; fi )"\
+        "$( if [ "$KV_TLS_TRUST_INSECURE" -eq 1 ]; then echo "--tls.insecureskipverify"; fi )"\
+        "$( if [ "$KV_BOLTDB_PERSIST_CONNECTION" -eq 1 ]; then echo "--persist-connection"; fi )"\
+        --post-hook "$POST_HOOK"
+
+elif [ "$CERTS_SOURCE" = "etcd" ]; then
+
+  # shellcheck disable=SC2059
+  printf "[INFO] $CERTS_SOURCE KV Store configuration: version=$KV_ETCD_VERSION, endpoints=$KV_ENDPOINTS, username=$KV_USERNAME,
+          timeout=$KV_TIMEOUT, sync-period=$KV_ETCD_SYNC_PERIOD, prefix=$KV_PREFIX, suffix=$KV_SUFFIX, tls=$KL_TLS_ENABLED,
+          ca_optional=$KV_TLS_CA_OPTIONAL, tls_trust_insecure=$KV_TLS_TRUST_INSECURE\n\n"
+
+  start_with_handle_kv_error traefik-certs-dumper kv "$CERTS_SOURCE"\
+        --endpoints "$KV_ENDPOINTS"\
+        --clean\
+        --dest "$SSL_DEST"\
+        --domain-subdir\
+        --watch\
+        --crt-name "$CERT_NAME"\
+        --crt-ext "$CERT_EXTENSION"\
+        --key-name "$KEY_NAME"\
+        --key-ext "$KEY_EXTENSION"\
+        --prefix "$KV_PREFIX"\
+        --suffix "$KV_SUFFIX"\
+        --etcd-version "$KV_ETCD_VERSION"\
+        "$( if [ -n "$KV_TIMEOUT" ]; then echo "--connection-timeout $KV_TIMEOUT"; fi )"\
+        "$( if [ -n "$KV_USERNAME" ]; then echo "--username $KV_USERNAME"; fi )"\
+        "$( if [ -n "$KV_PASSWORD"  ]; then echo "--password $KV_PASSWORD"; fi )"\
+        "$( if [ -n "$KV_TLS_CA"  ]; then echo "--tls.ca $KV_TLS_CA"; fi )"\
+        "$( if [ -n "$KV_TLS_CERT"  ]; then echo "--tls.cert $KV_TLS_CERT"; fi )"\
+        "$( if [ -n "$KV_TLS_KEY"  ]; then echo "--tls.key $KV_TLS_KEY"; fi )"\
+        "$( if [ -n "$KV_ETCD_SYNC_PERIOD"  ]; then echo "--sync-period $KV_ETCD_SYNC_PERIOD"; fi )"\
+        "$( if [ "$KL_TLS_ENABLED" -eq 1 ]; then echo "--tls"; fi )"\
+        "$( if [ "$KV_TLS_CA_OPTIONAL" -eq 1 ]; then echo "--tls.ca.optional"; fi )"\
+        "$( if [ "$KV_TLS_TRUST_INSECURE" -eq 1 ]; then echo "--tls.insecureskipverify"; fi )"\
+        --post-hook "$POST_HOOK"
+
+elif [ "$CERTS_SOURCE" = "zookeeper" ]; then
+
+  # shellcheck disable=SC2059
+  printf "[INFO] $CERTS_SOURCE KV Store configuration: endpoints=$KV_ENDPOINTS, username=$KV_USERNAME,
           timeout=$KV_TIMEOUT, prefix=$KV_PREFIX, suffix=$KV_SUFFIX, tls=$KL_TLS_ENABLED,
           ca_optional=$KV_TLS_CA_OPTIONAL, tls_trust_insecure=$KV_TLS_TRUST_INSECURE\n\n"
 
@@ -137,12 +232,6 @@ elif [ "$CERTS_SOURCE" = "consul" ]; then
         "$( if [ "$KV_TLS_TRUST_INSECURE" -eq 1 ]; then echo "--tls.insecureskipverify"; fi )"\
         --post-hook "$POST_HOOK"
 
-elif [ "$CERTS_SOURCE" = "boltdb" ]; then
-    echo ""
-elif [ "$CERTS_SOURCE" = "etcd" ]; then
-    echo ""
-elif [ "$CERTS_SOURCE" = "zookeeper" ]; then
-    echo ""
 else
     echo "[ERROR] Unknown selected certificates source '$CERTS_SOURCE'"
     exit 1
