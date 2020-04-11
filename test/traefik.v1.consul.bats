@@ -3,8 +3,6 @@ load 'libs/bats-assert/load'
 load 'test_helper/common'
 
 # todo :
-#  - test with consul external network
-
 #  - multidomain, copied to multiservers
 #  - single domain copied to multiserver
 #  - traefik v2 test
@@ -23,11 +21,13 @@ function teardown() {
 }
 
 @test "check: push certificate for mail.localhost.com trigged" {
+
   run repeat_until_success_or_timeout 60 sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F 'Pushing mail.localhost.com to'"
   assert_success
 }
 
 @test "check: certificate mail.localhost.com received on mailserver container" {
+
     # test script has been triggered on mailserver
     run repeat_until_success_or_timeout 30 sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F \"[INFO] mail.localhost.com - new certificate '/tmp/ssl/fullchain.pem' received on mailserver container\""
     assert_success
@@ -58,29 +58,6 @@ function teardown() {
 
     run repeat_until_success_or_timeout 30 sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -zoP '${postfix_dovecot_restarted_regex}'"
     assert_success
-}
-
-@test "check: initial pull certificates when traefik was already running" {
-    # up a new stack with only mailserver
-    docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
-    docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d traefik consul-leader pebble challtestsrv mailserver
-
-    # wait until certificates are generated for mail.localhost.com
-    run repeat_until_success_or_timeout 120 sh -c "docker logs ${TEST_STACK_NAME}_traefik_1 | grep -F \"Adding certificate for domain(s) mail.localhost.com\""
-    assert_success
-
-    # launch certificate renewer
-    docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d
-
-    # test certificate is added to mailserver
-    run repeat_until_success_or_timeout 30 sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
-    assert_success
-}
-
-@test "check: stack consul on an external network" {
-
-
-
 }
 
 @test "last" {

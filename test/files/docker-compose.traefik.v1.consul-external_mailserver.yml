@@ -12,7 +12,7 @@ services:
       - DOMAINS=mail.localhost.com
       - KV_ENDPOINTS=consul-leader:8500
     networks:
-      - consul
+      - test-consul-external
       - internal
 
   mailserver:
@@ -22,6 +22,7 @@ services:
     labels:
       - "mailserver-traefik.renew.domain=mail.localhost.com"
       - "traefik.frontend.rule=Host:mail.localhost.com" # traefik ACME will handle creation of certificates for this domain
+      - "traefik.docker.network=test-traefik-public-external"
       - "traefik.enable=true"
     volumes:
       - maildata:/var/mail
@@ -37,12 +38,12 @@ services:
       - SSL_KEY_PATH=/etc/postfix/ssl/key
     networks:
       - internal
-      - traefik-public
+      - test-traefik-public-external
 
 networks:
-  traefik-public:
+  test-consul-external:
     external: true
-  consul:
+  test-traefik-public-external:
     external: true
   internal:
     internal: true

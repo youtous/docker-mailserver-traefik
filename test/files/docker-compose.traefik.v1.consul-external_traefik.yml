@@ -47,7 +47,8 @@ services:
       - "traefik.frontend.rule=Host:traefik.localhost.com"
       - "traefik.enable=true"
     networks:
-      traefik-public:
+      internal:
+      test-traefik-public-external:
       bluenet:
         ipv4_address: 10.77.77.66
 
@@ -60,15 +61,16 @@ services:
       - CONSUL_BIND_INTERFACE=eth0
       - 'CONSUL_LOCAL_CONFIG={"leave_on_terminate": true}'
     networks:
-      bluenet:
+      internal:
+      test-consul-external:
 
 networks:
-  consul: # no internet access, only accessible for containers https://forums.docker.com/t/internal-network-between-containers-without-external-network-access/41751/9
-    driver: overlay
+  internal: # no internet acess
     internal: true
-  traefik-public:
-    driver: overlay
-    internal: true
+  test-consul-external:
+    external: true
+  test-traefik-public-external:
+    external: true
   bluenet:
     driver: bridge
     ipam:
