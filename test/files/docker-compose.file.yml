@@ -28,6 +28,7 @@ services:
       - mailstate:/var/mail-state
       - maillogs:/var/log/mail
       - ./common/.mailserver-config/:/tmp/docker-mailserver/
+      - ./common/dh-dovecot.pem:/etc/dovecot/dh.pem:ro
     env_file:
       - ./common/.mailserver.env
     environment:

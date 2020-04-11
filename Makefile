@@ -1,10 +1,16 @@
 #!make
-.PHONY: test help
+.PHONY: test build-test clean help
 .DEFAULT_GOAL= help
 
-tests: ## Run all the tests.
+build-test: ## Build the test image
 	docker build . -t 'mailserver-traefik:test-image'
+
+tests: build-test ## Run all the tests.
 	./test/libs/bats/bin/bats test/*.bats
+	make clean
+
+clean: ## Remove docker images built.
+	docker rmi mailserver-traefik:test-image
 
 # see https://suva.sh/posts/well-documented-makefiles/
 help: ## Show this help prompt.
