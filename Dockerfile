@@ -21,19 +21,15 @@ ENV TRAEFIK_VERSION=1\
     KV_BOLTDB_BUCKET=\
     KV_BOLTDB_PERSIST_CONNECTION=0\
     KV_ETCD_VERSION=etcd\
-    KV_ETCD_SYNC_PERIOD=
+    KV_ETCD_SYNC_PERIOD=\
+    SSL_DEST=/tmp/ssl
 
 # Install docker client, bash
 RUN apk update && apk add --no-cache docker-cli bash
 
-COPY handler.sh /
-RUN chmod +x /handler.sh
-COPY trigger-push.sh /
-RUN chmod +x /trigger-push.sh
-COPY tomav-renew-certs.bash /
-RUN chmod +x /tomav-renew-certs.bash
+COPY handler.sh trigger-push.sh tomav-renew-certs.bash /
+RUN chmod +x /handler.sh /trigger-push.sh /tomav-renew-certs.bash
 
-ENV SSL_DEST=/tmp/ssl
 VOLUME $SSL_DEST
 VOLUME /tmp/traefik
 
