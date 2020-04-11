@@ -3,7 +3,7 @@ load 'libs/bats-assert/load'
 load 'test_helper/common'
 
 function setup() {
-  DOCKER_FILE_TESTS="$BATS_TEST_DIRNAME/files/docker-compose.traefik.v2.etcd.yml"
+  DOCKER_FILE_TESTS="$BATS_TEST_DIRNAME/files/docker-compose.traefik.v1.etcd.yml"
   run_setup_file_if_necessary
 }
 
@@ -17,6 +17,7 @@ function teardown() {
 
 
 @test "check: certificate mail.localhost.com received on mailserver container" {
+    skip 'etcd is not suitable, see https://github.com/containous/traefik/issues/3754'
 
     # test script has been triggered on mailserver
     run repeat_until_success_or_timeout 30 sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F \"[INFO] mail.localhost.com - new certificate '/tmp/ssl/fullchain.pem' received on mailserver container\""

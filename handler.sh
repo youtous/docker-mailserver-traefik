@@ -51,7 +51,7 @@ KEY_NAME=privkey
 KEY_EXTENSION=.pem
 
 # cleanup SSL destination
-rm -Rf "$SSL_DEST/*"
+rm -Rf "${SSL_DEST:?/tmp/ssl}/*"
 
 # watch for certificate renewed
 echo "[INFO] $CERTS_SOURCE selected as certificates source"
@@ -231,8 +231,10 @@ elif [ "$CERTS_SOURCE" = "zookeeper" ]; then
         "$( if [ "$KV_TLS_CA_OPTIONAL" -eq 1 ]; then echo "--tls.ca.optional"; fi )"\
         "$( if [ "$KV_TLS_TRUST_INSECURE" -eq 1 ]; then echo "--tls.insecureskipverify"; fi )"\
         --post-hook "$POST_HOOK"
-
 else
     echo "[ERROR] Unknown selected certificates source '$CERTS_SOURCE'"
     exit 1
 fi
+
+echo "[ERROR] Reaching end of program without something to do..."
+exit 1

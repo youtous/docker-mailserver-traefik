@@ -3,7 +3,7 @@ load 'libs/bats-assert/load'
 load 'test_helper/common'
 
 function setup() {
-  DOCKER_FILE_TESTS="$BATS_TEST_DIRNAME/files/docker-compose.traefik.v2.consul.yml"
+  DOCKER_FILE_TESTS="$BATS_TEST_DIRNAME/files/docker-compose.traefik.v1.zookeeper.yml"
   run_setup_file_if_necessary
 }
 

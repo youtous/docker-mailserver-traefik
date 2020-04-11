@@ -8,8 +8,9 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - CERTS_SOURCE=consul
-      - KV_ENDPOINTS=consul:8500
+      - CERTS_SOURCE=etcd
+      - KV_ENDPOINTS=etcd:2379
+      - KV_ETCD_VERSION=etcdv3
       - DOMAINS=mail.localhost.com
     networks:
       - internal
@@ -20,9 +21,8 @@ services:
     domainname: localhost.com
     labels:
       - "mailserver-traefik.renew.domain=mail.localhost.com"
+      - "traefik.frontend.rule=Host:mail.localhost.com" # traefik ACME will handle creation of certificates for this domain
       - "traefik.enable=true"
-      - "traefik.http.routers.mail.rule=Host(`mail.localhost.com`)" # traefik ACME will handle creation of certificates for this domain
-      - "traefik.http.routers.mail.entrypoints=websecure"
     volumes:
       - maildata:/var/mail
       - mailstate:/var/mail-state
@@ -64,30 +64,33 @@ services:
 
   ### Traefik part ###
   traefik:
-    image: "traefik:v2.2"
+    image: traefik:v1.7-alpine
     command: /bin/sh -c 'update-ca-certificates && traefik --configFile=/etc/traefik/conf/acme.toml'
     extra_hosts:
       - acme.localhost.com:10.77.77.77 # test ACME server (peeble)
     volumes:
       - ./common/peeble/certs/pebble.minica.pem:/usr/local/share/ca-certificates/pebble.minica.pem:ro # import peeble RootCA
-      - "./common/traefik.v2.consul.toml:/etc/traefik/conf/acme.toml:ro"
+      - "./common/traefik.v1.etcd.toml:/etc/traefik/conf/acme.toml:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     ports:
       - "80:80"
       - "443:443"
       - "5002:5002" # Needed for HTTP challenge
+    expose:
+      - "8080"
     labels:
+      - "traefik.port=8080"
+      - "traefik.backend=traefikception"
+      - "traefik.frontend.rule=Host:traefik.localhost.com"
       - "traefik.enable=true"
-      - "traefik.http.routers.api.rule=Host(`traefik.localhost.com`)"
-      - "traefik.http.routers.api.service=api@internal"
-      - "traefik.http.routers.api.entrypoints=websecure"
     networks:
       internal:
       bluenet:
         ipv4_address: 10.77.77.66
 
-  consul:
-    image: consul
+  etcd:
+    image: quay.io/coreos/etcd:v3.3.12
+    command: etcd --listen-client-urls http://0.0.0.0:2379 --advertise-client-urls http://0.0.0.0:2380
     networks:
       - internal
 
@@ -102,6 +105,8 @@ networks:
         - subnet: 10.77.77.0/24
 
 volumes:
+  consul-data-leader:
+    driver: local
   maildata:
     driver: local
   mailstate:
