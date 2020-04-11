@@ -14,36 +14,44 @@ Learn more about **peeble**: https://github.com/letsencrypt/pebble
 
 The **Makefile** helps to use the stack.
 
-1. Start the ACME server : `make start-acme`
-1. When ACME is ready, start the entire stack : `make start`
+1. Start the stack : `make start`
 1. Done! Certificates will be generated and shared to the tagged **docker-mailserver** container.
 
 Usage: ` make <target>`
 ```
-stop             Stop the stack.
-start            Start the entire stack.
-start-acme       Start ACME part of the stack.
-start-traefik    Start traefik part of the stack.
-start-mailserver  Start mailserver part of the stack.
-restart          Restart the entire stack.
-rebuild          Rebuild the docker stack, remove old images. This command will stop the stack.
-build            Build the docker stack, remove old images. This command will stop the stack.
-test             Run all the tests of the application.
-init-env         Init env, create needed files
-help             Show this help prompt.
+  stop             Stop the stack.
+  start            Start the entire stack.
+  start-acme       Start ACME part of the stack.
+  start-traefik    Start traefik part of the stack.
+  start-mailserver  Start mailserver part of the stack.
+  restart          Restart the entire stack.
+  rebuild          Rebuild the docker stack, remove old images. This command will stop the stack.
+  build            Build the docker stack, remove old images. This command will stop the stack.
+  test             Run all the tests of the application.
+  init-traefik-env  Init traefik env, create needed files
+  help             Show this help prompt.
 ```
 
 You can detach the stack using `ARGS=-d`, for instance `make start ARGS=-d` will start the stack detached.
 
-### Using a different storage strategy
+_Take a look of the Makefile content for the list used commands ;)_
 
-By default, `acme.json` file is be used by _traefik_ as storage strategy. 
+### Storage strategies
+
+List of storage strategies:
+- **`file.v2`** : traefik v2 using a `acme.json` file
+- **`file`** : traefik v1 using a `acme.json` file
+- **`consul`** : traefik v1 using a consul instance
+
+By default, `acme.json` file is used by _traefik_ as storage strategy. 
 However, other storage solutions such as _consul_ are available.
 
 For using _consul_, set the variable `STORAGE_STRATEGY=consul` then use `make start`.
 ```bash
 STORAGE_STRATEGY=consul make start
+
 # or using environement variable
+
 set -x STORAGE_STRATEGY "consul"
 make start
 ```
@@ -65,11 +73,13 @@ Add this to the content of `/etc/hosts`
 ## Directory content
 Depending of the storage strategy used by traefik, different stacks are proposed.
 
-#### Traefik using file `acme.json` as storage strategy
+#### Traefik using `acme.json` file as storage strategy
 * **docker-compose.file.yml** : docker-compose file which contains the described above stack.
+* **docker-compose.file.v2.yml** : same as `docker-compose.file.yml` but using **traefik v2**.
 * **acme.file.toml** : traefik configuration file.
+* **traefik.v2.file.toml** : traefik v2 configuration file.
 
-#### Traefik using file _consul_ as storage strategy
+#### Traefik using _consul_ as storage strategy
 * **docker-compose.consul.yml** : docker-compose file which contains the described above stack plus a _consul_ container.
 * **acme.consul.toml** : traefik configuration file.
 

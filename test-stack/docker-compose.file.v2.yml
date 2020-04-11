@@ -15,8 +15,7 @@ services:
       - CERTS_SOURCE=file
       - DOMAINS=mail.localhost.com
     networks:
-      bluenet:
-        ipv4_address: 10.77.77.88
+      - internal
 
   mailserver:
     image: tvial/docker-mailserver:latest
@@ -93,13 +92,13 @@ services:
       - "443:443"
       - "5002:5002" # Needed for HTTP challenge
     networks:
-      traefik-public:
       bluenet:
         ipv4_address: 10.77.77.66
 
 
 networks:
-  traefik-public:
+  internal:
+    internal: true
   bluenet:
     driver: bridge
     ipam:
