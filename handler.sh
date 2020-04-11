@@ -37,6 +37,10 @@ function start_with_handle_kv_error() {
   done
 }
 
+if [ "$DOMAINS" = "missingdomains" ]; then
+  echo "[ERROR] DOMAINS var is not defined. Please define DOMAINS. Abort..."
+  exit 1
+fi
 IFS=',' read -ra DOMAINS_ARRAY <<< "$DOMAINS"
 echo "[INFO] ${#DOMAINS_ARRAY[@]} domain(s) to watch: $DOMAINS"
 

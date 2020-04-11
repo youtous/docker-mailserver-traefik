@@ -4,8 +4,8 @@ LABEL description "Automatically renew tomav/docker-mailserver certificates usin
       maintainer="youtous <contact@youtous.me>"
 
 ENV TRAEFIK_VERSION=1\
-    CERTS_SOURCE=consul\
-    DOMAINS=mail.youtous.dv\
+    CERTS_SOURCE=file\
+    DOMAINS=missingdomains\
     KV_ENDPOINTS=localhost:8500\
     KV_USERNAME=\
     KV_PASSWORD=\

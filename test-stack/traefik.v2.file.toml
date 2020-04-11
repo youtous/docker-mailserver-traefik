@@ -11,8 +11,16 @@
     address = ":5002"
   [entryPoints.web]
     address = ":80"
+      [entryPoints.web.http]
+        [entryPoints.web.http.redirections]
+          [entryPoints.web.http.redirections.entryPoint]
+            to = "websecure"
+            scheme = "https"
+
   [entryPoints.websecure]
     address = ":443"
+    [entryPoints.websecure.http.tls]
+      certResolver = "myresolver"
 
 [certificatesResolvers.myresolver.acme]
   email = "test@traefik.io"
@@ -24,9 +32,6 @@
 
 [log]
   level = "DEBUG"
-
-
-
 
 [api]
   dashboard = true

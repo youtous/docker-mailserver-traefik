@@ -17,7 +17,11 @@ start-acme: ## Start ACME part of the stack.
 start-traefik: init-traefik-env ## Start traefik part of the stack.
 ifeq ($(STORAGE_STRATEGY),file)
 	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} up ${ARGS} traefik
-else
+endif
+ifeq ($(STORAGE_STRATEGY),file.v2)
+	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} up ${ARGS} traefik
+endif
+ifeq ($(STORAGE_STRATEGY),consul)
 	docker-compose -p ${STACK_NAME} -f ${DOCKER_COMPOSE_FILE} up ${ARGS} consul-leader traefik
 endif
 
