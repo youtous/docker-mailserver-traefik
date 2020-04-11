@@ -3,7 +3,6 @@ load 'libs/bats-assert/load'
 load 'test_helper/common'
 
 # todo :
-#  - multidomain, copied to multiservers
 #  - single domain copied to multiserver
 #  - traefik v2 test
 

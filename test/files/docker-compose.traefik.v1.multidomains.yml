@@ -1,0 +1,138 @@
+version: "3.7"
+
+services:
+
+  ### Autorenew docker-mailserver part ###
+  mailserver-traefik:
+    image: mailserver-traefik:test-image
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - acme:/tmp/traefik/:ro
+    environment:
+      - TRAEFIK_VERSION=1
+      - CERTS_SOURCE=file
+      - DOMAINS=mail1.localhost.com,mail2.localhost.com
+    networks:
+      - internal
+
+  mailserver1:
+    image: tvial/docker-mailserver:latest
+    hostname: mail1
+    domainname: localhost.com
+    labels:
+      - "mailserver-traefik.renew.domain=mail1.localhost.com"
+      - "traefik.frontend.rule=Host:mail1.localhost.com" # traefik ACME will handle creation of certificates for this domain
+      - "traefik.enable=true"
+    volumes:
+      - maildata1:/var/mail
+      - mailstate1:/var/mail-state
+      - maillogs1:/var/log/mail
+      - ./common/.mailserver-config/:/tmp/docker-mailserver/
+      - ./common/.mailserver-config/dh-dovecot.pem:/etc/dovecot/dh.pem:ro # saving us computation
+    env_file:
+      - ./common/.mailserver.env
+    environment:
+      - SSL_TYPE=manual
+      - SSL_CERT_PATH=/etc/postfix/ssl/cert
+      - SSL_KEY_PATH=/etc/postfix/ssl/key
+    networks:
+      bluenet:
+
+  mailserver2:
+    image: tvial/docker-mailserver:latest
+    hostname: mail2
+    domainname: localhost.com
+    labels:
+      - "mailserver-traefik.renew.domain=mail2.localhost.com"
+      - "traefik.frontend.rule=Host:mail2.localhost.com" # traefik ACME will handle creation of certificates for this domain
+      - "traefik.enable=true"
+    volumes:
+      - maildata2:/var/mail
+      - mailstate2:/var/mail-state
+      - maillogs2:/var/log/mail
+      - ./common/.mailserver-config/:/tmp/docker-mailserver/
+      - ./common/.mailserver-config/dh-dovecot.pem:/etc/dovecot/dh.pem:ro # saving us computation
+    env_file:
+      - ./common/.mailserver.env
+    environment:
+      - SSL_TYPE=manual
+      - SSL_CERT_PATH=/etc/postfix/ssl/cert
+      - SSL_KEY_PATH=/etc/postfix/ssl/key
+    networks:
+      bluenet:
+
+  ### ACME test server ###
+  pebble:
+    image: letsencrypt/pebble
+    command: pebble -config /test/my-pebble-config.json -dnsserver 10.77.77.22:8053
+    environment:
+      - PEBBLE_VA_NOSLEEP=1
+    extra_hosts:
+      - acme.localhost.com:10.77.77.77 # test ACME server (peeble)
+    volumes:
+      - ./common/peeble/certs/:/test/certs/:ro # import peeble RootCA
+      - ./common/peeble/peeble-config.json:/test/my-pebble-config.json:ro
+    networks:
+      bluenet:
+        ipv4_address: 10.77.77.77
+    depends_on:
+      - challtestsrv
+  challtestsrv: # dns server for pebble
+    image: letsencrypt/pebble-challtestsrv:latest
+    command: pebble-challtestsrv -defaultIPv6 "" -defaultIPv4 10.77.77.66 # mock DNS responses to traefik
+    networks:
+      bluenet:
+        ipv4_address: 10.77.77.22
+
+  ### Traefik part ###
+  traefik:
+    image: traefik:v1.7-alpine
+    command: /bin/sh -c 'update-ca-certificates && traefik --configFile=/etc/traefik/conf/acme.toml'
+    extra_hosts:
+      - acme.localhost.com:10.77.77.77 # test ACME server (peeble)
+    volumes:
+      - ./common/peeble/certs/pebble.minica.pem:/usr/local/share/ca-certificates/pebble.minica.pem:ro # import peeble RootCA
+      - "./common/traefik.v1.file.toml:/etc/traefik/conf/acme.toml:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - acme:/tmp/acme:rw
+    ports:
+      - "80:80"
+      - "443:443"
+      - "5002:5002" # Needed for HTTP challenge
+    expose:
+      - "8080"
+    labels:
+      - "traefik.port=8080"
+      - "traefik.backend=traefikception"
+      - "traefik.frontend.rule=Host:traefik.localhost.com"
+      - "traefik.enable=true"
+    networks:
+      bluenet:
+        ipv4_address: 10.77.77.66
+
+
+networks:
+  internal: # no internet acess
+    internal: true
+  bluenet:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.77.77.0/24
+
+volumes:
+  acme:
+    driver: local
+  maildata1:
+    driver: local
+  mailstate1:
+    driver: local
+  maillogs1:
+    driver: local
+  maildata2:
+    driver: local
+  mailstate2:
+    driver: local
+  maillogs2:
+    driver: local
