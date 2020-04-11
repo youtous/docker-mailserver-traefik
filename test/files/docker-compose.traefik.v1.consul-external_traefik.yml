@@ -1,0 +1,81 @@
+version: "3.7"
+
+services:
+
+  ### ACME test server ###
+  pebble:
+    image: letsencrypt/pebble
+    command: pebble -config /test/my-pebble-config.json -dnsserver 10.77.77.22:8053
+    environment:
+      - PEBBLE_VA_NOSLEEP=1
+    extra_hosts:
+      - acme.localhost.com:10.77.77.77 # test ACME server (peeble)
+    volumes:
+      - ./common/peeble/certs/:/test/certs/:ro # import peeble RootCA
+      - ./common/peeble/peeble-config.json:/test/my-pebble-config.json:ro
+    networks:
+      bluenet:
+        ipv4_address: 10.77.77.77
+    depends_on:
+      - challtestsrv
+  challtestsrv: # dns server for pebble
+    image: letsencrypt/pebble-challtestsrv:latest
+    command: pebble-challtestsrv -defaultIPv6 "" -defaultIPv4 10.77.77.66 # mock DNS responses to traefik
+    networks:
+      bluenet:
+        ipv4_address: 10.77.77.22
+
+  ### Traefik part ###
+  traefik:
+    image: traefik:v1.7-alpine
+    command: /bin/sh -c 'update-ca-certificates && traefik --configFile=/etc/traefik/conf/acme.toml'
+    extra_hosts:
+      - acme.localhost.com:10.77.77.77 # test ACME server (peeble)
+    volumes:
+      - ./common/peeble/certs/pebble.minica.pem:/usr/local/share/ca-certificates/pebble.minica.pem:ro # import peeble RootCA
+      - "./common/traefik.v1.consul.toml:/etc/traefik/conf/acme.toml:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "5002:5002" # Needed for HTTP challenge
+    expose:
+      - "8080"
+    labels:
+      - "traefik.port=8080"
+      - "traefik.backend=traefikception"
+      - "traefik.frontend.rule=Host:traefik.localhost.com"
+      - "traefik.enable=true"
+    networks:
+      traefik-public:
+      bluenet:
+        ipv4_address: 10.77.77.66
+
+  consul-leader:
+    image: consul
+    command: agent -server -client=0.0.0.0 -bootstrap
+    volumes:
+      - consul-data-leader:/consul/data
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
+      - 'CONSUL_LOCAL_CONFIG={"leave_on_terminate": true}'
+    networks:
+      bluenet:
+
+networks:
+  consul: # no internet access, only accessible for containers https://forums.docker.com/t/internal-network-between-containers-without-external-network-access/41751/9
+    driver: overlay
+    internal: true
+  traefik-public:
+    driver: overlay
+    internal: true
+  bluenet:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.77.77.0/24
+
+volumes:
+  consul-data-leader:
+    driver: local

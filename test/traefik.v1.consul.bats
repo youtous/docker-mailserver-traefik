@@ -3,11 +3,10 @@ load 'libs/bats-assert/load'
 load 'test_helper/common'
 
 # todo :
-#  - test if cert copied from empty consul stack
+#  - test with consul external network
+
 #  - multidomain, copied to multiservers
 #  - single domain copied to multiserver
-#  - test with consul external network
-#  - test traefik not same stack, acme.json shared on file system
 #  - traefik v2 test
 
 function setup() {
@@ -76,6 +75,12 @@ function teardown() {
     # test certificate is added to mailserver
     run repeat_until_success_or_timeout 30 sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
     assert_success
+}
+
+@test "check: stack consul on an external network" {
+
+
+
 }
 
 @test "last" {

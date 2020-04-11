@@ -4,6 +4,7 @@ load 'test_helper/common'
 
 # todo :
 #  - renewal of certificated, triggers : new cert and restart of dovecot etc
+#  - test traefik not same stack, acme.json shared on file system
 
 function setup() {
   DOCKER_FILE_TESTS="$BATS_TEST_DIRNAME/files/docker-compose.traefik.v1.file.yml"
