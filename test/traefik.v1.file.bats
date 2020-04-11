@@ -6,6 +6,7 @@ load 'test_helper/common'
 #  - renewal of certificated, triggers : new cert and restart of dovecot etc
 
 function setup() {
+  DOCKER_FILE_TESTS="$BATS_TEST_DIRNAME/files/docker-compose.traefik.v1.file.yml"
   run_setup_file_if_necessary
 }
 
@@ -81,12 +82,10 @@ function teardown() {
 }
 
 setup_file() {
-  DOCKER_FILE_TESTS="$BATS_TEST_DIRNAME/files/docker-compose.traefik.v1.file.yml"
   docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
   docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d traefik mailserver mailserver-traefik
 }
 
 teardown_file() {
-  unset DOCKER_FILE_TESTS
   docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
 }

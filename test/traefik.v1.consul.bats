@@ -10,7 +10,11 @@ load 'test_helper/common'
 #  - test traefik not same stack, acme.json shared on file system
 #  - traefik v2 test
 
+# kv and not kv : mailserver + traefik + acme already running and certificates generated
+# then launch renew => check certificates are dumpted
+
 function setup() {
+  DOCKER_FILE_TESTS="$BATS_TEST_DIRNAME/files/docker-compose.traefik.v1.consul.yml"
   run_setup_file_if_necessary
 }
 
@@ -65,12 +69,10 @@ function teardown() {
 }
 
 setup_file() {
-  DOCKER_FILE_TESTS="$BATS_TEST_DIRNAME/files/docker-compose.traefik.v1.consul.yml"
   docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
   docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d
 }
 
 teardown_file() {
-  unset DOCKER_FILE_TESTS
   docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
 }
