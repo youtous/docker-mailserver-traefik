@@ -1,8 +1,8 @@
 image: docker:latest
 
 stages:
+  - build
   - test
-  - build # todo : change order to save building time
   - push
 
 services:
@@ -18,29 +18,8 @@ build:
   stage: build
   script:
     - docker build --pull -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA" .
-    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA"
-  only: [] # restrict building to some branches
-
-# push "latest" image to the registry
-build-latest:
-  stage: build
-  only:
-    - master # latest from master only
-  script:
-    - docker build --pull -t "$CI_REGISTRY_IMAGE:latest" .
-    - docker push $CI_REGISTRY_IMAGE:latest
-
-# push "tagged" image to the registry
-build-release:
-  stage: build
-  # only start a release on tags of master (not other branches)
-  only:
-    - tags # latest from master only
-  except:
-    - branches
-  script:
-    - docker build --pull -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_TAG" .
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
+    # - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA"
+  # only: [] # restrict building to some branches
 
 test:
   image: tmaier/docker-compose:latest
@@ -53,3 +32,24 @@ test:
     - apk add --no-cache --upgrade grep
   script:
     - make tests
+
+# push "latest" image to the registry
+build-latest:
+  stage: push
+  only:
+    - master # latest from master only
+  script:
+    - docker build --pull -t "$CI_REGISTRY_IMAGE:latest" .
+    - docker push $CI_REGISTRY_IMAGE:latest
+
+# push "tagged" image to the registry
+build-release:
+  stage: push
+  # only start a release on tags of master (not other branches)
+  only:
+    - tags # latest from master only
+  except:
+    - branches
+  script:
+    - docker build --pull -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_TAG" .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
