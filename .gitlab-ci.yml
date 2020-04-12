@@ -1,8 +1,8 @@
 image: docker:latest
 
 stages:
-  - test
   - build
+  - test
   - push
 
 services:
@@ -18,12 +18,24 @@ build:
   stage: build
   script:
     - docker build --pull -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA" .
-    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA"
-  only: [] # restrict building to some branches
+    # - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA"
+  # only: [] # restrict building to some branches
+
+test:
+  image: tmaier/docker-compose:latest
+  stage: test
+  variables:
+    TEST_TIMEOUT_IN_SECONDS: 120
+    GIT_SUBMODULE_STRATEGY: recursive
+  before_script:
+    - apk add --no-cache --update make bash
+    - apk add --no-cache --upgrade grep
+  script:
+    - make tests
 
 # push "latest" image to the registry
 build-latest:
-  stage: build
+  stage: push
   only:
     - master # latest from master only
   script:
@@ -32,7 +44,7 @@ build-latest:
 
 # push "tagged" image to the registry
 build-release:
-  stage: build
+  stage: push
   # only start a release on tags of master (not other branches)
   only:
     - tags # latest from master only
@@ -41,15 +53,3 @@ build-release:
   script:
     - docker build --pull -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_TAG" .
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
-
-test:
-  stage: test
-  variables:
-    TEST_TIMEOUT_IN_SECONDS: 120
-    DOCKER_COMPOSE_VERSION: 1.23.2
-  script:
-    - sudo rm /usr/local/bin/docker-compose
-    - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
-    - chmod +x docker-compose
-    - sudo mv docker-compose /usr/local/bin
-    - make tests
