@@ -2,6 +2,9 @@
 .PHONY: test build-test clean help
 .DEFAULT_GOAL= help
 
+build: ## Build the image
+	docker build . -t 'mailserver-traefik'
+
 build-test: ## Build the test image
 	docker build . -t 'mailserver-traefik:test-image'
 
