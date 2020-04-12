@@ -1,5 +1,5 @@
 # youtous/mailserver-traefik
-[![Build Status](https://travis-ci.com/youtous/docker-mailserver-traefik.svg?branch=master)](https://travis-ci.com/youtous/docker-mailserver-traefik)
+[![Build Status](https://img.shields.io/gitlab/pipeline/youtous/docker-mailserver-traefik)](https://gitlab.com/youtous/docker-mailserver-traefik/pipelines)
 [![Docker image size](https://img.shields.io/docker/image-size/youtous/mailserver-traefik)](https://hub.docker.com/r/youtous/mailserver-traefik/)
 [![Docker hub](https://img.shields.io/badge/hub-youtous%2Fmailserver--traefik-099cec?logo=docker)](https://hub.docker.com/r/youtous/mailserver-traefik/)
 [![Licence](https://img.shields.io/github/license/youtous/docker-mailserver-traefik)](https://github.com/youtous/docker-mailserver-traefik/blob/master/LICENSE)
