@@ -35,6 +35,9 @@ function teardown() {
 
     fp_mailserver_initial=$( docker exec "${TEST_STACK_NAME}_mailserver_1" sha256sum /etc/postfix/ssl/cert | awk '{print $1}' )
 
+    # save timestamp for log
+    first_restart_timestamp=$( date +%s )
+
     # once the a first certificate has been pushed, we must simulate a new renewal
     run docker cp "$BATS_TEST_DIRNAME/fixtures/acme.v1.inversed.json" "${TEST_STACK_NAME}_mailserver-traefik_1":/tmp/traefik/acme.json
     assert_success
@@ -42,10 +45,10 @@ function teardown() {
     assert_success
 
     # let the magical operates
-    postfix_dovecot_restarted_regex="postfix: .*\npostfix: started\ndovecot: .*\ndovecot: started\n"
-    count_lines_excepted=15
-
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -zoP '${postfix_dovecot_restarted_regex}' | wc -l" -eq  $count_lines_excepted
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs --since ${first_restart_timestamp} ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F \"[INFO] mail.localhost.com - new certificate '/tmp/ssl/fullchain.pem' received on mailserver container\""
+    assert_success
+    # test trigger script completion
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs --since ${first_restart_timestamp} ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
     assert_success
 
     # compare new ssl cert installed
