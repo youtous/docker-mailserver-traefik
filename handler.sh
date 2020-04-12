@@ -22,14 +22,14 @@ function start_with_handle_kv_error() {
     else
       # fatal error
       echo "$errors" >/dev/stderr
-      return 1
+      exit 1
     fi
 
     # check if restart does not timeout
     if [[ $(($SECONDS - $start_time )) -gt $INITIAL_TIMEOUT ]]; then
       echo "$errors" >/dev/stderr
       echo "[ERROR] Timed out on initial kv connection (initial timeout=${INITIAL_TIMEOUT}s), please check KV config and ensure KV Store is up"
-      return 1
+      exit 1
     fi
 
     # wait before retrying
@@ -78,7 +78,7 @@ if [ "$CERTS_SOURCE" = "file" ]; then
       if [[ $(($SECONDS - $start_time )) -gt $INITIAL_TIMEOUT ]]; then
         echo "$errors" >/dev/stderr
         echo "[ERROR] Timed out on initial acme ($ACME_SOURCE) watching (initial timeout=${INITIAL_TIMEOUT}s)"
-        return 1
+        exit 1
       fi
       sleep 5
   done
