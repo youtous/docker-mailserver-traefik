@@ -6,7 +6,7 @@ LABEL description "Automatically renew tomav/docker-mailserver certificates usin
 ENV TRAEFIK_VERSION=2\
     CERTS_SOURCE=file\
     DOMAINS=missingdomains\
-    KV_ENDPOINTS=localhost:8500\
+    KV_ENDPOINTS=\
     KV_USERNAME=\
     KV_PASSWORD=\
     KV_TIMEOUT=\

@@ -53,6 +53,12 @@ KEY_EXTENSION=.pem
 # cleanup SSL destination
 rm -Rf "${SSL_DEST:?/tmp/ssl}/*"
 
+# ensure kv endpoint are defined when using kv store strategy
+if [ -z "$KV_ENDPOINTS" ] && [ "$CERTS_SOURCE" != "file" ]; then
+  echo "[ERROR] KV_ENDPOINTS var is not defined. Please define KV_ENDPOINTS. Abort..."
+  exit 1
+fi
+
 # watch for certificate renewed
 echo "[INFO] $CERTS_SOURCE selected as certificates source"
 if [ "$CERTS_SOURCE" = "file" ]; then
