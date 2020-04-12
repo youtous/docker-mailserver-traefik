@@ -3,7 +3,7 @@ FROM ldez/traefik-certs-dumper:v2.7.0
 LABEL description "Automatically renew tomav/docker-mailserver certificates using traefik. " \
       maintainer="youtous <contact@youtous.me>"
 
-ENV TRAEFIK_VERSION=1\
+ENV TRAEFIK_VERSION=2\
     CERTS_SOURCE=file\
     DOMAINS=missingdomains\
     KV_ENDPOINTS=localhost:8500\
