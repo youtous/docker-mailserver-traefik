@@ -18,15 +18,15 @@ function teardown() {
 @test "check: each certificate is sent to the corresponding mailserver" {
 
   # wait until each certificates are generated
-  run repeat_until_success_or_timeout 30 sh -c "docker logs ${TEST_STACK_NAME}_traefik_1 | grep -F \"Adding certificate for domain(s) mail1.localhost.com\""
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_traefik_1 | grep -F \"Adding certificate for domain(s) mail1.localhost.com\""
   assert_success
-  run repeat_until_success_or_timeout 10 sh -c "docker logs ${TEST_STACK_NAME}_traefik_1 | grep -F \"Adding certificate for domain(s) mail2.localhost.com\""
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_traefik_1 | grep -F \"Adding certificate for domain(s) mail2.localhost.com\""
   assert_success
 
   # test certificates are dumped
-  run repeat_until_success_or_timeout 30 sh -c "docker exec ${TEST_STACK_NAME}_mailserver-traefik_1 ls /tmp/ssl | grep mail1.localhost.com"
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker exec ${TEST_STACK_NAME}_mailserver-traefik_1 ls /tmp/ssl | grep mail1.localhost.com"
   assert_success
-  run repeat_until_success_or_timeout 10 sh -c "docker exec ${TEST_STACK_NAME}_mailserver-traefik_1 ls /tmp/ssl | grep mail2.localhost.com"
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker exec ${TEST_STACK_NAME}_mailserver-traefik_1 ls /tmp/ssl | grep mail2.localhost.com"
   assert_success
 
   # test presence of certificates
@@ -42,9 +42,9 @@ function teardown() {
 
 
   # test posthook certificate is triggered on each server
-  run repeat_until_success_or_timeout 30 sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F '[INFO] mail1.localhost.com - Cert update: new certificate copied into container'"
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F '[INFO] mail1.localhost.com - Cert update: new certificate copied into container'"
   assert_success
-  run repeat_until_success_or_timeout 10 sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F '[INFO] mail2.localhost.com - Cert update: new certificate copied into container'"
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F '[INFO] mail2.localhost.com - Cert update: new certificate copied into container'"
   assert_success
 
   # test presence of certificates

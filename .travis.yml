@@ -4,7 +4,8 @@ services:
   - docker
 
 env:
-  DOCKER_COMPOSE_VERSION: 1.23.2
+  - DOCKER_COMPOSE_VERSION=1.23.2
+  - TEST_TIMEOUT_IN_SECONDS=120
 
 before_install:
   - sudo rm /usr/local/bin/docker-compose
