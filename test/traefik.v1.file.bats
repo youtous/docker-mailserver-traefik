@@ -15,33 +15,14 @@ function teardown() {
     skip 'only used to call setup_file from setup'
 }
 
-@test "check: missing certificates on mailserver" {
-  run docker exec "${TEST_STACK_NAME}_mailserver_1" ls /etc/postfix/ssl/key
-  assert_output --partial 'No such file or directory'
-  run docker exec "${TEST_STACK_NAME}_mailserver_1" ls /etc/postfix/ssl/cert
-  assert_output --partial 'No such file or directory'
-}
-
-@test "check: mailserver-traefik waits when no key" {
-  # wait until traefik built ACME file
-  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_traefik_1 | grep -F 'Building ACME client...'"
-  assert_success
-
-  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F 'Traefik acme is generating. Waiting until completed...'"
-  assert_success
-}
-
-@test "modify: restart the stack with pebble (ACME server)" {
-    docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
-    docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d
-}
-
 @test "check: push certificate for mail.localhost.com trigged" {
+
   run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F 'Pushing mail.localhost.com to'"
   assert_success
 }
 
 @test "check: certificate mail.localhost.com received on mailserver container" {
+
     # test script has been triggered on mailserver
     run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F \"[INFO] mail.localhost.com - new certificate '/tmp/ssl/fullchain.pem' received on mailserver container\""
     assert_success
@@ -80,7 +61,7 @@ function teardown() {
 
 setup_file() {
   docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
-  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d traefik mailserver mailserver-traefik
+  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d
 }
 
 teardown_file() {
