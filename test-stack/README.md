@@ -2,7 +2,7 @@
 
 ## Objectives
 
-This stack simulates an Traefik environnment and a docker-mailserver environnement. It embeds an ACME server (pebble) acting like Let's Encrypt
+This stack simulates an Traefik environment and a docker-mailserver environment. It embeds an ACME server (pebble) acting like Let's Encrypt
 in order to simulate certificates generate.
 
 The goal of this stack is to provide an environment for testing certificates extraction and management using the automatic mailserver-traefik certificate renewer.
