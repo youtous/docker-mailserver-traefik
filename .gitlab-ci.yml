@@ -1,4 +1,5 @@
 image: docker:latest
+# ref https://docs.gitlab.com/ee/user/packages/container_registry/#build-and-push-images-using-gitlab-cicd
 
 stages:
   - build
@@ -6,7 +7,14 @@ stages:
   - push
 
 services:
-  - docker:dind
+  - name: docker:dind
+    alias: localhost # https://stackoverflow.com/questions/57059851/gitlab-ci-gives-curl-7-failed-to-connect-to-localhost-port-8090-connection-r
+
+variables:
+  CONTAINER_TAG_FOR_TESTS: mailserver-traefik:test-image
+  CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+  CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE:latest
+  CONTAINER_RELEASE_TAGGED_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
 
 before_script:
   # docker login asks for the password to be passed through stdin for security
@@ -17,9 +25,8 @@ before_script:
 build:
   stage: build
   script:
-    - docker build --pull -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA" .
-    # - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA"
-  # only: [] # restrict building to some branches
+    - docker build --pull -t "$CONTAINER_TEST_IMAGE" .
+    - docker push "$CONTAINER_TEST_IMAGE"
 
 test:
   image: tmaier/docker-compose:latest
@@ -28,10 +35,12 @@ test:
     TEST_TIMEOUT_IN_SECONDS: 120
     GIT_SUBMODULE_STRATEGY: recursive
   before_script:
-    - apk add --no-cache --update make bash
+    - apk add --no-cache --update make bash curl
     - apk add --no-cache --upgrade grep
   script:
-    - make tests
+    - docker pull "$CONTAINER_TEST_IMAGE"
+    - docker tag "$CONTAINER_TEST_IMAGE" "$CONTAINER_TAG_FOR_TESTS"
+    - make tests-no-build
 
 # push "latest" image to the registry
 build-latest:
@@ -39,8 +48,9 @@ build-latest:
   only:
     - master # latest from master only
   script:
-    - docker build --pull -t "$CI_REGISTRY_IMAGE:latest" .
-    - docker push $CI_REGISTRY_IMAGE:latest
+    - docker pull $CONTAINER_TEST_IMAGE
+    - docker tag $CONTAINER_TEST_IMAGE $CONTAINER_RELEASE_IMAGE
+    - docker push $CONTAINER_RELEASE_IMAGE
 
 # push "tagged" image to the registry
 build-release:
@@ -51,5 +61,6 @@ build-release:
   except:
     - branches
   script:
-    - docker build --pull -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_TAG" .
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
+    - docker pull $CONTAINER_TEST_IMAGE
+    - docker tag $CONTAINER_TEST_IMAGE $CONTAINER_RELEASE_TAGGED_IMAGE
+    - docker push $CONTAINER_RELEASE_TAGGED_IMAGE
