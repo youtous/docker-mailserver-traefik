@@ -7,7 +7,7 @@ services:
     image: mailserver-traefik:test-image
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./acme.json:/tmp/traefik/acme.json:ro
+      - ./acme.json:/tmp/traefik/acme.json
     environment:
       - TRAEFIK_VERSION=2
       - CERTS_SOURCE=file
