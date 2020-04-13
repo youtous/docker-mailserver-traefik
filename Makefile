@@ -17,7 +17,7 @@ tests-no-build: ## Run all tests without building initial image
 
 clean: ## Remove docker images built.
 	docker rmi mailserver-traefik:test-image
-	rm -f test/acme.json
+	rm -f test/files/acme.json
 
 # see https://suva.sh/posts/well-documented-makefiles/
 help: ## Show this help prompt.

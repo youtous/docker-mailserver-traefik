@@ -54,7 +54,7 @@ function run_teardown_file_if_necessary() {
 
 function initAcmejson() {
   echo "CREATE empty acme.json file"
-	rm -f ./acme.json
-	touch ./acme.json
-	chmod 600 ./acme.json
+	rm -f "$BATS_TEST_DIRNAME/files/acme.json"
+	touch "$BATS_TEST_DIRNAME/files/acme.json"
+	chmod 600 "$BATS_TEST_DIRNAME/files/acme.json"
 }

@@ -49,12 +49,11 @@ function teardown() {
 }
 
 setup_file() {
+  initAcmejson
   docker-compose -p "$TEST_STACK_NAME_TRAEFIK" -f "$DOCKER_FILE_TRAEFIK_TESTS" down -v --remove-orphans
   docker-compose -p "$TEST_STACK_NAME_MAILSERVER" -f "$DOCKER_FILE_MAILSERVER_TESTS" down -v --remove-orphans
 
   docker network create test-traefik-public-external || true
-
-  initAcmejson
 }
 
 teardown_file() {
