@@ -19,6 +19,8 @@ function teardown() {
     # mock first certificate generation
     run cp "${BATS_TEST_DIRNAME}/fixtures/acme.v1.json" "${BATS_TEST_DIRNAME}/files/acme.json" && chmod 600 "${BATS_TEST_DIRNAME}/files/acme.json"
     assert_success
+    run docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d -V mailserver mailserver-traefik
+    assert_success
 
     # test script has been triggered on mailserver
     run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F \"[INFO] mail.localhost.com - new certificate '/tmp/ssl/fullchain.pem' received on mailserver container\""
@@ -61,7 +63,7 @@ function teardown() {
 setup_file() {
   initAcmejson
   docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
-  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d -V mailserver mailserver-traefik
+  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d -V mailserver
 }
 
 teardown_file() {
