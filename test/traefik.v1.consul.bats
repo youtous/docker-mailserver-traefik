@@ -49,10 +49,11 @@ function teardown() {
     # enable certificate generation
     docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d
 
-    postfix_dovecot_restarted_regex="postfix: stopped\npostfix: started\ndovecot: stopped\ndovecot: started"
+    postfix_dovecot_restarted_regex="postfix: .*\npostfix: started\ndovecot: .*\ndovecot: started"
 
     run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -zoP '${postfix_dovecot_restarted_regex}'"
     assert_success
+    
 }
 
 @test "last" {
