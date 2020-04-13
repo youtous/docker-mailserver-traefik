@@ -242,5 +242,5 @@ else
     exit 1
 fi
 
-echo "[ERROR] Reaching end of program without something to do..."
+echo "[ERROR] Fatal error, the program will exit..."
 exit 1

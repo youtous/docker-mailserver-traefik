@@ -51,3 +51,10 @@ function run_teardown_file_if_necessary() {
         teardown_file
     fi
 }
+
+function initAcmejson() {
+  echo "CREATE empty acme.json file"
+	rm -f ./acme.json
+	touch ./acme.json
+	chmod 600 ./acme.json
+}

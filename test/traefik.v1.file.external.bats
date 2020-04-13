@@ -54,8 +54,7 @@ setup_file() {
 
   docker network create test-traefik-public-external || true
 
-  docker volume rm test-acme-external || true
-  docker volume create test-acme-external || true
+  initAcmejson
 }
 
 teardown_file() {
@@ -63,5 +62,4 @@ teardown_file() {
   docker-compose -p "$TEST_STACK_NAME_MAILSERVER" -f "$DOCKER_FILE_MAILSERVER_TESTS" down -v --remove-orphans
 
   docker network rm test-traefik-public-external || true
-  docker volume rm test-acme-external || true
 }

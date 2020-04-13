@@ -37,6 +37,7 @@ function teardown() {
 
 setup_file() {
   docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
+  initAcmejson
   docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d -V traefik mailserver mailserver-traefik
 }
 
