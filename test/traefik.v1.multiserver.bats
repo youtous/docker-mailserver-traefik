@@ -12,7 +12,7 @@ function teardown() {
 }
 
 @test "first" {
-    skip 'only used to call setup_file from setup'
+    skip "only used to call setup_file from setup: $( basename $BATS_TEST_FILENAME )"
 }
 
 @test "check: each certificate is copied on different servers" {
