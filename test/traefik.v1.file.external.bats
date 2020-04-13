@@ -23,8 +23,8 @@ function teardown() {
     # up traefik stack
     docker-compose -p "$TEST_STACK_NAME_TRAEFIK" -f "$DOCKER_FILE_TRAEFIK_TESTS" up -d -V
 
-    # wait until certificates are generated for mail.localhost.com
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME_TRAEFIK}_traefik_1 | grep -F \"Adding certificate for domain(s) mail.localhost.com\""
+    # wait traefik+pebble are up
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME_TRAEFIK}_traefik_1 | grep -F \"Adding certificate for domain(s) traefik.localhost.com\""
     assert_success
 
     # launch certificate renewer and mailserver
