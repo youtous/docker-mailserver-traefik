@@ -16,7 +16,7 @@ function teardown() {
 }
 
 @test "check: dovecot and postfix restarted using supervisorctl after certificate push" {
-    # /!\ This test could fail if mailserver (dovecot) don't receive the certificate fast engouth
+    # /!\ todo : don't launch renewer directly, wait This test could fail if mailserver (dovecot) don't receive the certificate fast engouth
 
     # up a new stack with only mailserver
     docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d -V mailserver
@@ -25,7 +25,7 @@ function teardown() {
     repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver_1 | grep -F 'mail.localhost.com is up and running'"
 
     # enable certificate generation
-    docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d -V
+    docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d
 
     postfix_dovecot_restarted_regex="postfix: .*\npostfix: started\ndovecot: .*\ndovecot: started"
 

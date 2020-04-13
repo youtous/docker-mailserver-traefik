@@ -20,11 +20,11 @@ function teardown() {
 }
 
 @test "check: initial pull certificates when traefik was already running" {
-    # up traefik stack and only mailserver
+    # up traefik stack todo : move
     docker-compose -p "$TEST_STACK_NAME_TRAEFIK" -f "$DOCKER_FILE_TRAEFIK_TESTS" up -d -V
 
-    # wait until certificates are generated for mail.localhost.com
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME_TRAEFIK}_traefik_1 | grep -F \"Got certificate for domains [mail.localhost.com]\""
+    # wait traefik+pebble are up
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME_TRAEFIK}_traefik_1 | grep -F \"Got certificate for domains [traefik.localhost.com]\""
     assert_success
 
     # launch certificate renewer
