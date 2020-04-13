@@ -17,9 +17,7 @@ function teardown() {
 
 @test "check: when a certificate is renewed, the corresponding mailserver must receive and update the certificate" {
     # mock first certificate generation
-    run docker cp "$BATS_TEST_DIRNAME/fixtures/acme.v1.json" "${TEST_STACK_NAME}_mailserver-traefik_1":/tmp/traefik/acme.json.tmp
-    assert_success
-    run docker exec "${TEST_STACK_NAME}_mailserver-traefik_1" sh -c "chmod 600 /tmp/traefik/acme.json.tmp && mv /tmp/traefik/acme.json.tmp /tmp/traefik/acme.json"
+    run cp "${BATS_TEST_DIRNAME}/fixtures/acme.v1.json" "${BATS_TEST_DIRNAME}/files/acme.json" && chmod 600 "${BATS_TEST_DIRNAME}/files/acme.json"
     assert_success
 
     # test script has been triggered on mailserver
@@ -39,9 +37,7 @@ function teardown() {
     first_restart_timestamp=$( date +%s )
 
     # once the a first certificate has been pushed, we must simulate a new renewal
-    run docker cp "$BATS_TEST_DIRNAME/fixtures/acme.v1.inversed.json" "${TEST_STACK_NAME}_mailserver-traefik_1":/tmp/traefik/acme.json.tmp
-    assert_success
-    run docker exec "${TEST_STACK_NAME}_mailserver-traefik_1" sh -c "chmod 600 /tmp/traefik/acme.json.tmp && mv /tmp/traefik/acme.json.tmp /tmp/traefik/acme.json"
+    run cp "${BATS_TEST_DIRNAME}/fixtures/acme.v1.inversed.json" "${BATS_TEST_DIRNAME}/files/acme.json" && chmod 600 "${BATS_TEST_DIRNAME}/files/acme.json"
     assert_success
 
     # let the magical operates
