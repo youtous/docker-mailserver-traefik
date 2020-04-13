@@ -8,7 +8,10 @@ build: ## Build the image
 build-test: ## Build the test image
 	docker build . -t 'mailserver-traefik:test-image'
 
-tests: build-test ## Run all the tests.
+tests: build-test ## Run all the tests. The test image will be built
+	make tests-no-build
+
+tests-no-build: ## Run all tests without building initial image
 	./test/libs/bats/bin/bats test/*.bats
 	make clean
 
