@@ -53,10 +53,6 @@ setup_file() {
   docker-compose -p "$TEST_STACK_NAME_TRAEFIK" -f "$DOCKER_FILE_TRAEFIK_TESTS" down -v --remove-orphans
   docker-compose -p "$TEST_STACK_NAME_MAILSERVER" -f "$DOCKER_FILE_MAILSERVER_TESTS" down -v --remove-orphans
 
-
-  docker-compose -p "$TEST_STACK_NAME_TRAEFIK" -f "$DOCKER_FILE_TRAEFIK_TESTS" build --force-rm --no-cache
-  docker-compose -p "$TEST_STACK_NAME_MAILSERVER" -f "$DOCKER_FILE_MAILSERVER_TESTS" build --force-rm --no-cache
-
   docker network create test-traefik-public-external || true
   docker network create test-consul-external || true
 }
