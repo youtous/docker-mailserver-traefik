@@ -29,7 +29,7 @@ function teardown() {
     assert_success
 
     # launch certificate renewer
-    docker-compose -p "$TEST_STACK_NAME_MAILSERVER" -f "$DOCKER_FILE_MAILSERVER_TESTS" up -d
+    docker-compose -p "$TEST_STACK_NAME_MAILSERVER" -f "$DOCKER_FILE_MAILSERVER_TESTS" up -d -V
 
     # test certificates are dumped
     run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker exec ${TEST_STACK_NAME_MAILSERVER}_mailserver-traefik_1 ls /tmp/ssl | grep mail.localhost.com"
