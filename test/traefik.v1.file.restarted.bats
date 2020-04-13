@@ -16,6 +16,8 @@ function teardown() {
 }
 
 @test "check: dovecot and postfix restarted using supervisorctl after certificate push" {
+    # /!\ This test could fail if mailserver (dovecot) don't receive the certificate fast engouth
+
     # up a new stack with only mailserver
     docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d -V mailserver
 
