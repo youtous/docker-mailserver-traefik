@@ -20,7 +20,7 @@ function teardown() {
 }
 
 @test "check: initial pull certificates when traefik was already running" {
-    # up traefik stack todo : move
+    # up traefik stack
     docker-compose -p "$TEST_STACK_NAME_TRAEFIK" -f "$DOCKER_FILE_TRAEFIK_TESTS" up -d -V
 
     # wait traefik+pebble are up
