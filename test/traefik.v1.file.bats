@@ -39,6 +39,7 @@ function teardown() {
 
 @test "check: dovecot and postfix restarted using supervisorctl after certificate push" {
 
+  # todo : extract ?
     # up a new stack with only mailserver
     docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
     docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver
@@ -61,7 +62,8 @@ function teardown() {
 
 setup_file() {
   docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
-  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d
+  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" build --force-rm --no-cache
+  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d -V
 }
 
 teardown_file() {
