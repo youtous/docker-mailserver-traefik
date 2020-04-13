@@ -13,6 +13,7 @@ function start_with_handle_kv_error() {
   while [ $must_continue ]; do
     # echo "debug command : $@ "
     { errors=$("$@" 2>&1 >&3 3>&-); } 3>&1
+
     # echo "copy of stderr: $errors"
     must_continue=$(echo "$errors" | grep -Fq 'could not fetch Key/Value pair for key' && echo 1 || echo 0)
 
