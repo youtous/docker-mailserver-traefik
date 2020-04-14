@@ -50,8 +50,11 @@ function teardown() {
     # test trigger script completion
     run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs --since ${first_restart_timestamp} ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
     # debug puporse
-    docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 >&3
+    docker logs "${TEST_STACK_NAME}_mailserver-traefik_1" >&3
     assert_success
+
+    # i/o temp fix
+    sleep 20
 
     # compare new ssl cert installed
     fp_mailserver_after=$( docker exec "${TEST_STACK_NAME}_mailserver_1" sha256sum /etc/postfix/ssl/cert | awk '{print $1}' )
