@@ -11,10 +11,11 @@ Docker image which automatically renews [tomav/docker-mailserver ](https://githu
 
 ### Features
 
+- Automatically push certificates to *mailserver* containers on container creation or on cert renewal
 - Supports _traefik_ v1 and v2
 - Handles all ACME storage strategies 
-- Restart dovecot and postfix after certificate update
-- Wires using a single label on the mailserver!
+- Restarts dovecot and postfix after certificate update
+- Wiring using a single label on the mailserver!
 - Lightweight docker image 
 
 ### Installation
@@ -28,13 +29,13 @@ docker run -d --name mailserver --label mailserver-traefik.renew.domain=mail.loc
 
 Then start the traefik certificate renewer:
 ```
-docker run -d --name mailserver-traefik -e DOMAINS=mail.localhost.com -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD/acme.json:/tmp/traefik/:ro" youtous/mailserver-traefik
+docker run -d --name cert-renewer-traefik -e DOMAINS=mail.localhost.com -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD/acme.json:/tmp/traefik/:ro" youtous/mailserver-traefik
 ```
 
 #### Using docker-compose
 ```yaml
 services:
-  mailserver-traefik:
+  cert-renewer-traefik:
     image: youtous/mailserver-traefik:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -73,9 +74,9 @@ On the *mailserver* container : define the **label** and **set SSL environment**
       - SSL_KEY_PATH=/etc/postfix/ssl/key
 ```
 
-On the *mailserver-traefik* container, configure the following environment variables and map docker socket:
+On the *cert-renewer-traefik* container, configure the following environment variables and map docker socket:
 ```yaml
-  mailserver-traefik:
+  cert-renewer-traefik:
     image: youtous/mailserver-traefik:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock # required
@@ -89,12 +90,13 @@ On the *mailserver-traefik* container, configure the following environment varia
 | -------- | ----------- | ---- | ------------- | ------ |
 | **DOMAINS** | domain to watch, separate domains using a coma | *required* |  | any _tld_ seperated by a coma. e.g.: mail.server.com,mail.localhost.com
 | **CERTS_SOURCE** | source used to retrieve certificates | *optional* | file | file, consul, etc, zookeeper, boltdb
+| **PUSH_PERIOD** | by default, certificates will be pushed when a change is detected and every *PUSH_PERIOD*, allowing new containers to get existing certificates | *optional* | 15m | *0* = disabled (certificates are pushed only when updated)<br> *<int>m/s/h* - see [man timeout](https://linux.die.net/man/1/timeout) )
 
 Other environment variables depends on the **CERTS_SOURCE** selected.
 
 #### Using file storage _acme.json_
 
-- Mount `acme.json` on `/tmp/traefik/acme.json` file using a read-only docker volume : `-v "$PWD/acme.json:/tmp/traefik/:ro"`
+- Mount `acme.json` on `/tmp/traefik/acme.json` read-only: `-v "$PWD/acme.json:/tmp/traefik/:ro"`
 
 - Specific environment variables:
 
@@ -126,7 +128,7 @@ See [Using docker-compose](#using-docker-compose)
 #### Using a KV Store
 *docker-compose.yml*
 ```yaml
-  mailserver-traefik:
+  cert-renewer-traefik:
     image: youtous/mailserver-traefik:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock # required
@@ -162,11 +164,11 @@ See [Using docker-compose](#using-docker-compose)
       - SSL_CERT_PATH=/etc/postfix/ssl/cert
       - SSL_KEY_PATH=/etc/postfix/ssl/key
 ```
-When a new certificate is issued, *mailserver-traefik* will push it into the *mailserver* then restart dovecot and postfix services. The mailserver certificates will always be up to date :)
+When a new certificate is issued, *cert-renewer-traefik* will push it into the *mailserver* then restart dovecot and postfix services. The mailserver certificates will always be up to date :)
 
 You can attach a traefik rule directly on the *mailserver* service in order to get certificates automatically requested by traefik or use [traefik static configuration](https://docs.traefik.io/v1.7/configuration/acme/#domains).
 
-*mailserver-traefik* service does not require to be running in the *mailserver* stack, it can handles many *mailserver* and many domains. See: [See also](#see-also).
+*cert-renewer-traefik* service does not require to be running in the *mailserver* stack, it can handles many *mailserver* and many domains. See: [See also](#see-also).
 
 
 ### See also
