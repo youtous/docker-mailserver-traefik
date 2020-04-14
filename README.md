@@ -96,7 +96,7 @@ Other environment variables depends on the **CERTS_SOURCE** selected.
 
 #### Using file storage _acme.json_
 
-- Mount `acme.json` on `/tmp/traefik/acme.json` file using a read-only docker volume : `-v "$PWD/acme.json:/tmp/traefik/:ro"`
+- Mount `acme.json` on `/tmp/traefik/acme.json` read-only: `-v "$PWD/acme.json:/tmp/traefik/:ro"`
 
 - Specific environment variables:
 
