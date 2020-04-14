@@ -9,27 +9,60 @@
 function start_handler_kv() {
   start_time=$SECONDS
 
-  must_continue=true
-  while [ $must_continue ]; do
-    # echo "debug command : $@ "
-    { errors=$("$@" 2>&1 >&3 3>&-); } 3>&1
+  while true; do
+    # cleanup SSL destination
+    rm -Rf "${SSL_DEST:?/tmp/ssl}/*"
 
-    # echo "copy of stderr: $errors"
-    must_continue=$(echo "$errors" | grep -Fq 'could not fetch Key/Value pair for key' && echo 1 || echo 0)
+    { errors=$(timeout "$FORCEPUSH_PERIOD" "$@" 2>&1 >&3 3>&-); } 3>&1
+    exit_code=$?
 
-    if [ "$must_continue" ]; then
-      # silence KV error
-      echo "[INFO] KV Store (/$KV_PREFIX$KV_SUFFIX) not accessible. Waiting until KV is up and populated by traefik.."
-    else
-      # fatal error
-      echo "$errors" >/dev/stderr
+    # handle error
+    if [ "$exit_code" -eq 0 ]; then
+      echo "[ERROR] Unexcepted ending of the program. EXIT_CODE=$exit_code"
       exit 1
+    elif [ "$exit_code" -eq 143 ]; then
+      echo "[INFO] Periodically push initiated..."
+    else
+      # depending of the error, handle it
+      # handle kv error at init
+      must_continue=$(echo "$errors" | grep -Fq 'could not fetch Key/Value pair for key' && echo 1 || echo 0)
+
+      if [ "$must_continue" ]; then
+        # silence KV error
+        echo "[INFO] KV Store (/$KV_PREFIX$KV_SUFFIX) not accessible. Waiting until KV is up and populated by traefik.."
+
+        # check if restart does not timeout
+        if [[ $(($SECONDS - $start_time)) -gt $INITIAL_TIMEOUT ]]; then
+          echo "$errors" >/dev/stderr
+          echo "[ERROR] Timed out on initial kv connection (initial timeout=${INITIAL_TIMEOUT}s), please check KV config and ensure KV Store is up"
+          exit 1
+        fi
+      else
+        # fatal error
+        echo "$errors" >/dev/stderr
+        echo "[ERROR] Fatal error: exit of the program EXIT_CODE=$exit_code"
+        exit $exit_code
+      fi
     fi
 
-    # check if restart does not timeout
-    if [[ $(($SECONDS - $start_time)) -gt $INITIAL_TIMEOUT ]]; then
-      echo "$errors" >/dev/stderr
-      echo "[ERROR] Timed out on initial kv connection (initial timeout=${INITIAL_TIMEOUT}s), please check KV config and ensure KV Store is up"
+    # wait before restarting
+    sleep 5
+  done
+}
+
+# helper which keep restarting periodicaly the certificate puller every period
+function start_handler() {
+
+  while true; do
+    # cleanup SSL destination
+    rm -Rf "${SSL_DEST:?/tmp/ssl}/*"
+
+    timeout "$PUSH_PERIOD" "$@"
+    exit_code=$?
+
+    # handle error
+    if [ "$exit_code" -eq 0 ]; then
+      echo "[ERROR] Unexcepted ending of the program. EXIT_CODE=$exit_code"
       exit 1
     elif [ "$exit_code" -eq 143 ]; then
       echo "[INFO] Periodically push initiated..."
@@ -111,7 +144,7 @@ if [ "$CERTS_SOURCE" = "file" ]; then
     fi
   done
 
-  traefik-certs-dumper file \
+  start_handler traefik-certs-dumper file \
     --version "v$TRAEFIK_VERSION" \
     --clean \
     --source "$ACME_SOURCE" \
@@ -131,7 +164,7 @@ elif [ "$CERTS_SOURCE" = "consul" ]; then
           timeout=$KV_TIMEOUT, prefix=$KV_PREFIX, suffix=$KV_SUFFIX, tls=$KL_TLS_ENABLED,
           ca_optional=$KV_TLS_CA_OPTIONAL, tls_trust_insecure=$KV_TLS_TRUST_INSECURE\n\n"
 
-  start_with_handle_kv_error traefik-certs-dumper kv "$CERTS_SOURCE" \
+  start_handler_kv traefik-certs-dumper kv "$CERTS_SOURCE" \
     --endpoints "$KV_ENDPOINTS" \
     --clean \
     --dest "$SSL_DEST" \
@@ -162,7 +195,7 @@ elif [ "$CERTS_SOURCE" = "boltdb" ]; then
           timeout=$KV_TIMEOUT, prefix=$KV_PREFIX, suffix=$KV_SUFFIX, bucket=$KV_BOLTDB_BUCKET,
           tls=$KL_TLS_ENABLED, ca_optional=$KV_TLS_CA_OPTIONAL, tls_trust_insecure=$KV_TLS_TRUST_INSECURE\n\n"
 
-  start_with_handle_kv_error traefik-certs-dumper kv "$CERTS_SOURCE" \
+  start_handler_kv traefik-certs-dumper kv "$CERTS_SOURCE" \
     --endpoints "$KV_ENDPOINTS" \
     --clean \
     --dest "$SSL_DEST" \
@@ -194,7 +227,7 @@ elif [ "$CERTS_SOURCE" = "etcd" ]; then
           timeout=$KV_TIMEOUT, sync-period=$KV_ETCD_SYNC_PERIOD, prefix=$KV_PREFIX, suffix=$KV_SUFFIX, tls=$KL_TLS_ENABLED,
           ca_optional=$KV_TLS_CA_OPTIONAL, tls_trust_insecure=$KV_TLS_TRUST_INSECURE\n\n"
 
-  start_with_handle_kv_error traefik-certs-dumper kv "$CERTS_SOURCE" \
+  start_handler_kv traefik-certs-dumper kv "$CERTS_SOURCE" \
     --endpoints "$KV_ENDPOINTS" \
     --clean \
     --dest "$SSL_DEST" \
@@ -226,7 +259,7 @@ elif [ "$CERTS_SOURCE" = "zookeeper" ]; then
           timeout=$KV_TIMEOUT, prefix=$KV_PREFIX, suffix=$KV_SUFFIX, tls=$KL_TLS_ENABLED,
           ca_optional=$KV_TLS_CA_OPTIONAL, tls_trust_insecure=$KV_TLS_TRUST_INSECURE\n\n"
 
-  start_with_handle_kv_error traefik-certs-dumper kv "$CERTS_SOURCE" \
+  start_handler_kv traefik-certs-dumper kv "$CERTS_SOURCE" \
     --endpoints "$KV_ENDPOINTS" \
     --clean \
     --dest "$SSL_DEST" \
