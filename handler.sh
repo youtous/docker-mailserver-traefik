@@ -13,8 +13,14 @@ function start_handler_kv() {
     # cleanup SSL destination
     rm -Rf "${SSL_DEST:?/tmp/ssl}/*"
 
-    { errors=$(timeout "$PUSH_PERIOD" "$@" 2>&1 >&3 3>&-); } 3>&1
+    # disable or not periodical push
+    if [ "$PUSH_PERIOD" = "0" ]; then
+      { errors=$("$@" 2>&1 >&3 3>&-); } 3>&1
+    else
+      { errors=$(timeout "$PUSH_PERIOD" "$@" 2>&1 >&3 3>&-); } 3>&1
+    fi
     exit_code=$?
+
 
     # handle error
     if [ "$exit_code" -eq 0 ]; then
@@ -57,7 +63,12 @@ function start_handler() {
     # cleanup SSL destination
     rm -Rf "${SSL_DEST:?/tmp/ssl}/*"
 
-    timeout "$PUSH_PERIOD" "$@"
+    # disable or not periodical push
+    if [ "$PUSH_PERIOD" = "0" ]; then
+      "$@"
+    else
+      timeout "$PUSH_PERIOD" "$@"
+    fi
     exit_code=$?
 
     # handle error
