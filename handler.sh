@@ -13,7 +13,7 @@ function start_handler_kv() {
     # cleanup SSL destination
     rm -Rf "${SSL_DEST:?/tmp/ssl}/*"
 
-    { errors=$(timeout "$FORCEPUSH_PERIOD" "$@" 2>&1 >&3 3>&-); } 3>&1
+    { errors=$(timeout "$PUSH_PERIOD" "$@" 2>&1 >&3 3>&-); } 3>&1
     exit_code=$?
 
     # handle error
