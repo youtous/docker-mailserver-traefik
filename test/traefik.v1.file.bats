@@ -16,7 +16,6 @@ function teardown() {
 }
 
 @test "check: push certificate for mail.localhost.com trigged" {
-
   run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F 'Pushing mail.localhost.com to'"
   assert_success
 }
@@ -42,8 +41,21 @@ function teardown() {
 }
 
 setup_file() {
+  initAcmejson
   docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
-  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d -V
+  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d traefik pebble challtestsrv
+
+  # wait traefik+pebble are up
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_traefik_1 | grep -F \"Adding certificate for domain(s) traefik.localhost.com\""
+  assert_success
+  # wait until mailserver is up
+  run docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver
+  assert_success
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver_1 | grep -F 'mail.localhost.com is up and running'"
+  assert_success
+  # then up the entire stack
+  run docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d
+  assert_success
 }
 
 teardown_file() {

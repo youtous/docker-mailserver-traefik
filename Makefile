@@ -3,9 +3,11 @@
 .DEFAULT_GOAL= help
 
 build: ## Build the image
+	echo "building latest mailserver-traefik image..."
 	docker build . -t 'mailserver-traefik'
 
 build-test: ## Build the test image
+	echo "building latest mailserver-traefik:test-image image..."
 	docker build . -t 'mailserver-traefik:test-image'
 
 tests: build-test ## Run all the tests. The test image will be built
@@ -17,6 +19,7 @@ tests-no-build: ## Run all tests without building initial image
 
 clean: ## Remove docker images built.
 	docker rmi mailserver-traefik:test-image
+	rm -f test/files/acme.json
 
 # see https://suva.sh/posts/well-documented-makefiles/
 help: ## Show this help prompt.

@@ -30,7 +30,8 @@ ENV TRAEFIK_VERSION=2\
     KV_ETCD_VERSION=etcd\
     KV_ETCD_SYNC_PERIOD=\
     INITIAL_TIMEOUT=300\
-    SSL_DEST=/tmp/ssl
+    SSL_DEST=/tmp/ssl\
+    DEBUG=0
 
 # Install docker client, bash
 RUN apk update && apk add --no-cache docker-cli bash

@@ -7,7 +7,7 @@ services:
     image: mailserver-traefik:test-image
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - acme:/tmp/traefik/:ro
+      - ./acme.json:/tmp/traefik/acme.json
     environment:
       - TRAEFIK_VERSION=1
       - CERTS_SOURCE=file
@@ -94,7 +94,7 @@ services:
       - ./common/peeble/certs/pebble.minica.pem:/usr/local/share/ca-certificates/pebble.minica.pem:ro # import peeble RootCA
       - "./common/traefik.v1.file.toml:/etc/traefik/conf/acme.toml:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - acme:/tmp/acme:rw
+      - ./acme.json:/tmp/acme/acme.json:rw
     ports:
       - "80:80"
       - "443:443"
@@ -122,8 +122,6 @@ networks:
         - subnet: 10.77.77.0/24
 
 volumes:
-  acme:
-    driver: local
   maildata1:
     driver: local
   mailstate1:

@@ -17,14 +17,14 @@ function teardown() {
 
 
 @test "check: dovecot and postfix restarted using supervisorctl after certificate push" {
-    # up a new stack with only mailserver
-    docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d -V mailserver
+    # up a new stack with only mailserver and traefik
+    docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver traefik consul-leader pebble challtestsrv
 
     # wait until mailserver is up
     repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver_1 | grep -F 'mail.localhost.com is up and running'"
 
     # enable certificate generation
-    docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d -V
+    docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d
 
     postfix_dovecot_restarted_regex="postfix: .*\npostfix: started\ndovecot: .*\ndovecot: started"
 

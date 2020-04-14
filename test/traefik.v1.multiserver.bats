@@ -16,13 +16,9 @@ function teardown() {
 }
 
 @test "check: each certificate is copied on different servers" {
-
-  # wait until certificates is generated
-  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_traefik_1 | grep -F \"Adding certificate for domain(s) mail.localhost.com\""
-
   # test certificate is dumped
   run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker exec ${TEST_STACK_NAME}_mailserver-traefik_1 ls /tmp/ssl | grep mail.localhost.com"
-
+  assert_success
 
   # test presence of certificate
   run docker exec "${TEST_STACK_NAME}_mailserver-traefik_1" ls /tmp/ssl/mail.localhost.com/
@@ -58,8 +54,23 @@ function teardown() {
 }
 
 setup_file() {
+  initAcmejson
   docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
-  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d -V
+  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d traefik pebble challtestsrv
+
+  # wait traefik+pebble are up
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_traefik_1 | grep -F \"Adding certificate for domain(s) traefik.localhost.com\""
+  assert_success
+  # wait until mailservers are up
+  run docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver1 mailserver2
+  assert_success
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver1_1 | grep -F 'server1.localhost.com is up and running'"
+  assert_success
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver2_1 | grep -F 'server2.localhost.com is up and running'"
+  assert_success
+  # then up the entire stack
+  run docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d
+  assert_success
 }
 
 teardown_file() {

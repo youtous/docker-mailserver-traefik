@@ -17,9 +17,9 @@ function teardown() {
 
 @test "check: when a certificate is renewed, the corresponding mailserver must receive and update the certificate" {
     # mock first certificate generation
-    run docker cp "$BATS_TEST_DIRNAME/fixtures/acme.v1.json" "${TEST_STACK_NAME}_mailserver-traefik_1":/tmp/traefik/acme.json.tmp
+    run cp "${BATS_TEST_DIRNAME}/fixtures/acme.v1.json" "${BATS_TEST_DIRNAME}/files/acme.json" && chmod 600 "${BATS_TEST_DIRNAME}/files/acme.json"
     assert_success
-    run docker exec "${TEST_STACK_NAME}_mailserver-traefik_1" sh -c "chmod 600 /tmp/traefik/acme.json.tmp && mv /tmp/traefik/acme.json.tmp /tmp/traefik/acme.json"
+    run docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver-traefik
     assert_success
 
     # test script has been triggered on mailserver
@@ -39,9 +39,9 @@ function teardown() {
     first_restart_timestamp=$( date +%s )
 
     # once the a first certificate has been pushed, we must simulate a new renewal
-    run docker cp "$BATS_TEST_DIRNAME/fixtures/acme.v1.inversed.json" "${TEST_STACK_NAME}_mailserver-traefik_1":/tmp/traefik/acme.json.tmp
+    run docker cp "$BATS_TEST_DIRNAME/fixtures/acme.v1.inversed.json" "${TEST_STACK_NAME}_mailserver-traefik_1":/tmp/traefik/acme.inversed.json.tmp
     assert_success
-    run docker exec "${TEST_STACK_NAME}_mailserver-traefik_1" sh -c "chmod 600 /tmp/traefik/acme.json.tmp && mv /tmp/traefik/acme.json.tmp /tmp/traefik/acme.json"
+    run docker exec "${TEST_STACK_NAME}_mailserver-traefik_1" sh -c "cat /tmp/traefik/acme.inversed.json.tmp > /tmp/traefik/acme.json"
     assert_success
 
     # let the magical operates
@@ -49,7 +49,12 @@ function teardown() {
     assert_success
     # test trigger script completion
     run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs --since ${first_restart_timestamp} ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
+    # debug puporse
+    docker logs "${TEST_STACK_NAME}_mailserver-traefik_1" >&3
     assert_success
+
+    # i/o temp fix
+    sleep 20
 
     # compare new ssl cert installed
     fp_mailserver_after=$( docker exec "${TEST_STACK_NAME}_mailserver_1" sha256sum /etc/postfix/ssl/cert | awk '{print $1}' )
@@ -63,8 +68,11 @@ function teardown() {
 }
 
 setup_file() {
+  initAcmejson
   docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
-  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d -V
+  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver
+  # wait until mailserver is up
+  repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver_1 | grep -F 'mail.localhost.com is up and running'"
 }
 
 teardown_file() {

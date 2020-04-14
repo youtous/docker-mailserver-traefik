@@ -7,7 +7,7 @@ services:
     image: mailserver-traefik:test-image
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - acme:/tmp/traefik/:rw
+      - ./acme.json:/tmp/traefik/acme.json
     environment:
       - TRAEFIK_VERSION=1
       - CERTS_SOURCE=file
@@ -51,8 +51,6 @@ networks:
         - subnet: 10.77.77.0/24
 
 volumes:
-  acme:
-    driver: local
   maildata:
     driver: local
   mailstate:
