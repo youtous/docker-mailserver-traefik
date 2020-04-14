@@ -14,7 +14,7 @@ tests: build-test ## Run all the tests. The test image will be built
 	make tests-no-build
 
 tests-no-build: ## Run all tests without building initial image
-	./test/libs/bats/bin/bats test/*.bats
+	./test/libs/bats/bin/bats test/traefik.v1.renewed.bats
 	make clean
 
 clean: ## Remove docker images built.

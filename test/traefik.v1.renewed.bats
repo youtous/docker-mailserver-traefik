@@ -39,7 +39,9 @@ function teardown() {
     first_restart_timestamp=$( date +%s )
 
     # once the a first certificate has been pushed, we must simulate a new renewal
-    run cp "${BATS_TEST_DIRNAME}/fixtures/acme.v1.inversed.json" "${BATS_TEST_DIRNAME}/files/acme.json" && chmod 600 "${BATS_TEST_DIRNAME}/files/acme.json"
+    run docker cp "$BATS_TEST_DIRNAME/fixtures/acme.v1.inversed.json" "${TEST_STACK_NAME}_mailserver-traefik_1":/tmp/traefik/acme.inversed.json.tmp
+    assert_success
+    run docker exec "${TEST_STACK_NAME}_mailserver-traefik_1" sh -c "cat /tmp/traefik/acme.inversed.json.tmp > /tmp/traefik/acme.json"
     assert_success
 
     # let the magical operates
@@ -47,6 +49,8 @@ function teardown() {
     assert_success
     # test trigger script completion
     run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs --since ${first_restart_timestamp} ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
+    # debug puporse
+    docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 >&3
     assert_success
 
     # compare new ssl cert installed

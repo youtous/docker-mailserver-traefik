@@ -49,13 +49,15 @@ else
 fi
 
 
-# echo "[DEBUG] FP Currentcert is $FP_CurrentC"
-# echo "[DEBUG] FP Newcert is $FP_NewC"
-
+echo "[DEBUG] FP Currentcert is $FP_CurrentC"
+echo "[DEBUG] FP Newcert is $FP_NewC"
 
 # test if FP are different, if yes let take actions
 if [ "$FP_NewC" = "$FP_CurrentC" ]; then
   echo "[DEBUG] $FQDN - FPs match, no change detected on certificate, nothing to do..."
+
+  # cleanup received cert
+  # rm $Newkey $Newcert
 else
 
   # cp new certificate, update permissions
