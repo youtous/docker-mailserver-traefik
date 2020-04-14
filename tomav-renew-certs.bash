@@ -7,7 +7,6 @@
 
 # Forked from https://github.com/hanscees/dockerscripts/blob/master/scripts/tomav-renew-certs
 
-
 Currentcert=/etc/postfix/ssl/cert # should not be changed, hardcoded in mailserver
 Newcert=/tmp/ssl/fullchain.pem
 Currentkey=/etc/postfix/ssl/key
@@ -15,16 +14,16 @@ Newkey=/tmp/ssl/privkey.pem
 Backupkey="$Newkey.backup"
 Backupcert="$Newcert.backup"
 FQDN=$(hostname --fqdn)
+DEBUG=${DEBUG:-0}
 
 if [ ! -f "$Newcert" ]; then
-    echo "[ERROR] $FQDN - renew certificates script called without submitting a new certificate in $Newcert"
-    exit 1
+  echo "[ERROR] $FQDN - renew certificates script called without submitting a new certificate in $Newcert"
+  exit 1
 fi
 if [ ! -f "$Newkey" ]; then
-    echo "[ERROR] $FQDN - renew certificates script called without submitting a new key in $Newkey"
-    exit 1
+  echo "[ERROR] $FQDN - renew certificates script called without submitting a new key in $Newkey"
+  exit 1
 fi
-
 
 echo "[INFO] $FQDN - new certificate '$Newcert' received on mailserver container"
 
@@ -40,8 +39,8 @@ if [ -f $Currentcert ]; then
   #fingerprint should be a long string
   stringlenght=${#FP_NewC}
   if [ ! "$stringlenght" -gt 50 ]; then
-      echo "[ERROR] $FQDN - fingerprint of new certificate is too short = $stringlenght, dealing with an invalid certificate"
-      exit 1
+    echo "[ERROR] $FQDN - fingerprint of new certificate is too short = $stringlenght, dealing with an invalid certificate"
+    exit 1
   fi
 else
   # first import

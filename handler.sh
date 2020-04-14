@@ -14,11 +14,11 @@ function start_with_handle_kv_error() {
     # echo "debug command : $@ "
     { errors=$("$@" 2>&1 >&3 3>&-); } 3>&1
     # echo "copy of stderr: $errors"
-    must_continue=$( echo "$errors" | grep -Fq 'could not fetch Key/Value pair for key' && echo 1 || echo 0)
+    must_continue=$(echo "$errors" | grep -Fq 'could not fetch Key/Value pair for key' && echo 1 || echo 0)
 
     if [ "$must_continue" ]; then
-        # silence KV error
-        echo "[INFO] KV Store (/$KV_PREFIX$KV_SUFFIX) not accessible. Waiting until KV is up and populated by traefik.."
+      # silence KV error
+      echo "[INFO] KV Store (/$KV_PREFIX$KV_SUFFIX) not accessible. Waiting until KV is up and populated by traefik.."
     else
       # fatal error
       echo "$errors" >/dev/stderr
@@ -26,7 +26,7 @@ function start_with_handle_kv_error() {
     fi
 
     # check if restart does not timeout
-    if [[ $(($SECONDS - $start_time )) -gt $INITIAL_TIMEOUT ]]; then
+    if [[ $(($SECONDS - $start_time)) -gt $INITIAL_TIMEOUT ]]; then
       echo "$errors" >/dev/stderr
       echo "[ERROR] Timed out on initial kv connection (initial timeout=${INITIAL_TIMEOUT}s), please check KV config and ensure KV Store is up"
       exit 1
@@ -41,7 +41,7 @@ if [ "$DOMAINS" = "missingdomains" ]; then
   echo "[ERROR] DOMAINS var is not defined. Please define DOMAINS. Abort..."
   exit 1
 fi
-IFS=',' read -ra DOMAINS_ARRAY <<< "$DOMAINS"
+IFS=',' read -ra DOMAINS_ARRAY <<<"$DOMAINS"
 echo "[INFO] ${#DOMAINS_ARRAY[@]} domain(s) to watch: $DOMAINS"
 
 POST_HOOK="/trigger-push.sh"
@@ -70,47 +70,47 @@ if [ "$CERTS_SOURCE" = "file" ]; then
   elif [ "$TRAEFIK_VERSION" = 2 ]; then
     echo ""
   else
-      echo "[ERROR] Unknown selected traefik version v$TRAEFIK_VERSION"
-      exit 1
+    echo "[ERROR] Unknown selected traefik version v$TRAEFIK_VERSION"
+    exit 1
   fi
 
   ACME_SOURCE=/tmp/traefik/acme.json
 
   start_time=$SECONDS
   while [ ! -f $ACME_SOURCE ] || [ ! -s $ACME_SOURCE ]; do
-      echo "[INFO] $ACME_SOURCE is empty or does not exist. Waiting until file is created..."
+    echo "[INFO] $ACME_SOURCE is empty or does not exist. Waiting until file is created..."
 
-      # check if not timeout
-      if [[ $(($SECONDS - $start_time )) -gt $INITIAL_TIMEOUT ]]; then
-        echo "$errors" >/dev/stderr
-        echo "[ERROR] Timed out on initial acme ($ACME_SOURCE) watching (initial timeout=${INITIAL_TIMEOUT}s)"
-        exit 1
-      fi
-      sleep 5
+    # check if not timeout
+    if [[ $(($SECONDS - $start_time)) -gt $INITIAL_TIMEOUT ]]; then
+      echo "$errors" >/dev/stderr
+      echo "[ERROR] Timed out on initial acme ($ACME_SOURCE) watching (initial timeout=${INITIAL_TIMEOUT}s)"
+      exit 1
+    fi
+    sleep 5
   done
 
   # check generated config is valid
   EMPTY_KEY="\"KeyType\": \"\""
   while true; do
-      if grep -q "$EMPTY_KEY" "$ACME_SOURCE"; then
-        echo "[INFO] Traefik acme is generating. Waiting until completed..."
-        sleep 5
-      else
-        break
-      fi
+    if grep -q "$EMPTY_KEY" "$ACME_SOURCE"; then
+      echo "[INFO] Traefik acme is generating. Waiting until completed..."
+      sleep 5
+    else
+      break
+    fi
   done
 
-  traefik-certs-dumper file\
-    --version "v$TRAEFIK_VERSION"\
-    --clean\
-    --source "$ACME_SOURCE"\
-    --dest "$SSL_DEST"\
-    --domain-subdir\
-    --watch\
-    --crt-name "$CERT_NAME"\
-    --crt-ext "$CERT_EXTENSION"\
-    --key-name "$KEY_NAME"\
-    --key-ext "$KEY_EXTENSION"\
+  traefik-certs-dumper file \
+    --version "v$TRAEFIK_VERSION" \
+    --clean \
+    --source "$ACME_SOURCE" \
+    --dest "$SSL_DEST" \
+    --domain-subdir \
+    --watch \
+    --crt-name "$CERT_NAME" \
+    --crt-ext "$CERT_EXTENSION" \
+    --key-name "$KEY_NAME" \
+    --key-ext "$KEY_EXTENSION" \
     --post-hook "$POST_HOOK"
 
 elif [ "$CERTS_SOURCE" = "consul" ]; then
@@ -120,61 +120,61 @@ elif [ "$CERTS_SOURCE" = "consul" ]; then
           timeout=$KV_TIMEOUT, prefix=$KV_PREFIX, suffix=$KV_SUFFIX, tls=$KL_TLS_ENABLED,
           ca_optional=$KV_TLS_CA_OPTIONAL, tls_trust_insecure=$KV_TLS_TRUST_INSECURE\n\n"
 
-  start_with_handle_kv_error traefik-certs-dumper kv "$CERTS_SOURCE"\
-        --endpoints "$KV_ENDPOINTS"\
-        --clean\
-        --dest "$SSL_DEST"\
-        --domain-subdir\
-        --watch\
-        --crt-name "$CERT_NAME"\
-        --crt-ext "$CERT_EXTENSION"\
-        --key-name "$KEY_NAME"\
-        --key-ext "$KEY_EXTENSION"\
-        --prefix "$KV_PREFIX"\
-        --suffix "$KV_SUFFIX"\
-        "$( if [ -n "$KV_TIMEOUT" ]; then echo "--connection-timeout $KV_TIMEOUT"; fi )"\
-        "$( if [ -n "$KV_USERNAME" ]; then echo "--username $KV_USERNAME"; fi )"\
-        "$( if [ -n "$KV_PASSWORD"  ]; then echo "--password $KV_PASSWORD"; fi )"\
-        "$( if [ -n "$KV_TLS_CA"  ]; then echo "--tls.ca $KV_TLS_CA"; fi )"\
-        "$( if [ -n "$KV_TLS_CERT"  ]; then echo "--tls.cert $KV_TLS_CERT"; fi )"\
-        "$( if [ -n "$KV_TLS_KEY"  ]; then echo "--tls.key $KV_TLS_KEY"; fi )"\
-        "$( if [ -n "$KV_CONSUL_TOKEN"  ]; then echo "--token $KV_CONSUL_TOKEN"; fi )"\
-        "$( if [ "$KL_TLS_ENABLED" -eq 1 ]; then echo "--tls"; fi )"\
-        "$( if [ "$KV_TLS_CA_OPTIONAL" -eq 1 ]; then echo "--tls.ca.optional"; fi )"\
-        "$( if [ "$KV_TLS_TRUST_INSECURE" -eq 1 ]; then echo "--tls.insecureskipverify"; fi )"\
-        --post-hook "$POST_HOOK"
+  start_with_handle_kv_error traefik-certs-dumper kv "$CERTS_SOURCE" \
+    --endpoints "$KV_ENDPOINTS" \
+    --clean \
+    --dest "$SSL_DEST" \
+    --domain-subdir \
+    --watch \
+    --crt-name "$CERT_NAME" \
+    --crt-ext "$CERT_EXTENSION" \
+    --key-name "$KEY_NAME" \
+    --key-ext "$KEY_EXTENSION" \
+    --prefix "$KV_PREFIX" \
+    --suffix "$KV_SUFFIX" \
+    "$(if [ -n "$KV_TIMEOUT" ]; then echo "--connection-timeout $KV_TIMEOUT"; fi)" \
+    "$(if [ -n "$KV_USERNAME" ]; then echo "--username $KV_USERNAME"; fi)" \
+    "$(if [ -n "$KV_PASSWORD" ]; then echo "--password $KV_PASSWORD"; fi)" \
+    "$(if [ -n "$KV_TLS_CA" ]; then echo "--tls.ca $KV_TLS_CA"; fi)" \
+    "$(if [ -n "$KV_TLS_CERT" ]; then echo "--tls.cert $KV_TLS_CERT"; fi)" \
+    "$(if [ -n "$KV_TLS_KEY" ]; then echo "--tls.key $KV_TLS_KEY"; fi)" \
+    "$(if [ -n "$KV_CONSUL_TOKEN" ]; then echo "--token $KV_CONSUL_TOKEN"; fi)" \
+    "$(if [ "$KL_TLS_ENABLED" -eq 1 ]; then echo "--tls"; fi)" \
+    "$(if [ "$KV_TLS_CA_OPTIONAL" -eq 1 ]; then echo "--tls.ca.optional"; fi)" \
+    "$(if [ "$KV_TLS_TRUST_INSECURE" -eq 1 ]; then echo "--tls.insecureskipverify"; fi)" \
+    --post-hook "$POST_HOOK"
 
 elif [ "$CERTS_SOURCE" = "boltdb" ]; then
 
-    # shellcheck disable=SC2059
+  # shellcheck disable=SC2059
   printf "[INFO] $CERTS_SOURCE KV Store configuration: endpoints=$KV_ENDPOINTS, username=$KV_USERNAME,
           timeout=$KV_TIMEOUT, prefix=$KV_PREFIX, suffix=$KV_SUFFIX, bucket=$KV_BOLTDB_BUCKET,
           tls=$KL_TLS_ENABLED, ca_optional=$KV_TLS_CA_OPTIONAL, tls_trust_insecure=$KV_TLS_TRUST_INSECURE\n\n"
 
-  start_with_handle_kv_error traefik-certs-dumper kv "$CERTS_SOURCE"\
-        --endpoints "$KV_ENDPOINTS"\
-        --clean\
-        --dest "$SSL_DEST"\
-        --domain-subdir\
-        --watch\
-        --crt-name "$CERT_NAME"\
-        --crt-ext "$CERT_EXTENSION"\
-        --key-name "$KEY_NAME"\
-        --key-ext "$KEY_EXTENSION"\
-        --prefix "$KV_PREFIX"\
-        --suffix "$KV_SUFFIX"\
-        "$( if [ -n "$KV_TIMEOUT" ]; then echo "--connection-timeout $KV_TIMEOUT"; fi )"\
-        "$( if [ -n "$KV_USERNAME" ]; then echo "--username $KV_USERNAME"; fi )"\
-        "$( if [ -n "$KV_PASSWORD"  ]; then echo "--password $KV_PASSWORD"; fi )"\
-        "$( if [ -n "$KV_TLS_CA"  ]; then echo "--tls.ca $KV_TLS_CA"; fi )"\
-        "$( if [ -n "$KV_TLS_CERT"  ]; then echo "--tls.cert $KV_TLS_CERT"; fi )"\
-        "$( if [ -n "$KV_TLS_KEY"  ]; then echo "--tls.key $KV_TLS_KEY"; fi )"\
-        "$( if [ -n "$KV_BOLTDB_BUCKET"  ]; then echo "--bucket $KV_BOLTDB_BUCKET"; fi )"\
-        "$( if [ "$KL_TLS_ENABLED" -eq 1 ]; then echo "--tls"; fi )"\
-        "$( if [ "$KV_TLS_CA_OPTIONAL" -eq 1 ]; then echo "--tls.ca.optional"; fi )"\
-        "$( if [ "$KV_TLS_TRUST_INSECURE" -eq 1 ]; then echo "--tls.insecureskipverify"; fi )"\
-        "$( if [ "$KV_BOLTDB_PERSIST_CONNECTION" -eq 1 ]; then echo "--persist-connection"; fi )"\
-        --post-hook "$POST_HOOK"
+  start_with_handle_kv_error traefik-certs-dumper kv "$CERTS_SOURCE" \
+    --endpoints "$KV_ENDPOINTS" \
+    --clean \
+    --dest "$SSL_DEST" \
+    --domain-subdir \
+    --watch \
+    --crt-name "$CERT_NAME" \
+    --crt-ext "$CERT_EXTENSION" \
+    --key-name "$KEY_NAME" \
+    --key-ext "$KEY_EXTENSION" \
+    --prefix "$KV_PREFIX" \
+    --suffix "$KV_SUFFIX" \
+    "$(if [ -n "$KV_TIMEOUT" ]; then echo "--connection-timeout $KV_TIMEOUT"; fi)" \
+    "$(if [ -n "$KV_USERNAME" ]; then echo "--username $KV_USERNAME"; fi)" \
+    "$(if [ -n "$KV_PASSWORD" ]; then echo "--password $KV_PASSWORD"; fi)" \
+    "$(if [ -n "$KV_TLS_CA" ]; then echo "--tls.ca $KV_TLS_CA"; fi)" \
+    "$(if [ -n "$KV_TLS_CERT" ]; then echo "--tls.cert $KV_TLS_CERT"; fi)" \
+    "$(if [ -n "$KV_TLS_KEY" ]; then echo "--tls.key $KV_TLS_KEY"; fi)" \
+    "$(if [ -n "$KV_BOLTDB_BUCKET" ]; then echo "--bucket $KV_BOLTDB_BUCKET"; fi)" \
+    "$(if [ "$KL_TLS_ENABLED" -eq 1 ]; then echo "--tls"; fi)" \
+    "$(if [ "$KV_TLS_CA_OPTIONAL" -eq 1 ]; then echo "--tls.ca.optional"; fi)" \
+    "$(if [ "$KV_TLS_TRUST_INSECURE" -eq 1 ]; then echo "--tls.insecureskipverify"; fi)" \
+    "$(if [ "$KV_BOLTDB_PERSIST_CONNECTION" -eq 1 ]; then echo "--persist-connection"; fi)" \
+    --post-hook "$POST_HOOK"
 
 elif [ "$CERTS_SOURCE" = "etcd" ]; then
 
@@ -183,30 +183,30 @@ elif [ "$CERTS_SOURCE" = "etcd" ]; then
           timeout=$KV_TIMEOUT, sync-period=$KV_ETCD_SYNC_PERIOD, prefix=$KV_PREFIX, suffix=$KV_SUFFIX, tls=$KL_TLS_ENABLED,
           ca_optional=$KV_TLS_CA_OPTIONAL, tls_trust_insecure=$KV_TLS_TRUST_INSECURE\n\n"
 
-  start_with_handle_kv_error traefik-certs-dumper kv "$CERTS_SOURCE"\
-        --endpoints "$KV_ENDPOINTS"\
-        --clean\
-        --dest "$SSL_DEST"\
-        --domain-subdir\
-        --watch\
-        --crt-name "$CERT_NAME"\
-        --crt-ext "$CERT_EXTENSION"\
-        --key-name "$KEY_NAME"\
-        --key-ext "$KEY_EXTENSION"\
-        --prefix "$KV_PREFIX"\
-        --suffix "$KV_SUFFIX"\
-        --etcd-version "$KV_ETCD_VERSION"\
-        "$( if [ -n "$KV_TIMEOUT" ]; then echo "--connection-timeout $KV_TIMEOUT"; fi )"\
-        "$( if [ -n "$KV_USERNAME" ]; then echo "--username $KV_USERNAME"; fi )"\
-        "$( if [ -n "$KV_PASSWORD"  ]; then echo "--password $KV_PASSWORD"; fi )"\
-        "$( if [ -n "$KV_TLS_CA"  ]; then echo "--tls.ca $KV_TLS_CA"; fi )"\
-        "$( if [ -n "$KV_TLS_CERT"  ]; then echo "--tls.cert $KV_TLS_CERT"; fi )"\
-        "$( if [ -n "$KV_TLS_KEY"  ]; then echo "--tls.key $KV_TLS_KEY"; fi )"\
-        "$( if [ -n "$KV_ETCD_SYNC_PERIOD"  ]; then echo "--sync-period $KV_ETCD_SYNC_PERIOD"; fi )"\
-        "$( if [ "$KL_TLS_ENABLED" -eq 1 ]; then echo "--tls"; fi )"\
-        "$( if [ "$KV_TLS_CA_OPTIONAL" -eq 1 ]; then echo "--tls.ca.optional"; fi )"\
-        "$( if [ "$KV_TLS_TRUST_INSECURE" -eq 1 ]; then echo "--tls.insecureskipverify"; fi )"\
-        --post-hook "$POST_HOOK"
+  start_with_handle_kv_error traefik-certs-dumper kv "$CERTS_SOURCE" \
+    --endpoints "$KV_ENDPOINTS" \
+    --clean \
+    --dest "$SSL_DEST" \
+    --domain-subdir \
+    --watch \
+    --crt-name "$CERT_NAME" \
+    --crt-ext "$CERT_EXTENSION" \
+    --key-name "$KEY_NAME" \
+    --key-ext "$KEY_EXTENSION" \
+    --prefix "$KV_PREFIX" \
+    --suffix "$KV_SUFFIX" \
+    --etcd-version "$KV_ETCD_VERSION" \
+    "$(if [ -n "$KV_TIMEOUT" ]; then echo "--connection-timeout $KV_TIMEOUT"; fi)" \
+    "$(if [ -n "$KV_USERNAME" ]; then echo "--username $KV_USERNAME"; fi)" \
+    "$(if [ -n "$KV_PASSWORD" ]; then echo "--password $KV_PASSWORD"; fi)" \
+    "$(if [ -n "$KV_TLS_CA" ]; then echo "--tls.ca $KV_TLS_CA"; fi)" \
+    "$(if [ -n "$KV_TLS_CERT" ]; then echo "--tls.cert $KV_TLS_CERT"; fi)" \
+    "$(if [ -n "$KV_TLS_KEY" ]; then echo "--tls.key $KV_TLS_KEY"; fi)" \
+    "$(if [ -n "$KV_ETCD_SYNC_PERIOD" ]; then echo "--sync-period $KV_ETCD_SYNC_PERIOD"; fi)" \
+    "$(if [ "$KL_TLS_ENABLED" -eq 1 ]; then echo "--tls"; fi)" \
+    "$(if [ "$KV_TLS_CA_OPTIONAL" -eq 1 ]; then echo "--tls.ca.optional"; fi)" \
+    "$(if [ "$KV_TLS_TRUST_INSECURE" -eq 1 ]; then echo "--tls.insecureskipverify"; fi)" \
+    --post-hook "$POST_HOOK"
 
 elif [ "$CERTS_SOURCE" = "zookeeper" ]; then
 
@@ -215,31 +215,31 @@ elif [ "$CERTS_SOURCE" = "zookeeper" ]; then
           timeout=$KV_TIMEOUT, prefix=$KV_PREFIX, suffix=$KV_SUFFIX, tls=$KL_TLS_ENABLED,
           ca_optional=$KV_TLS_CA_OPTIONAL, tls_trust_insecure=$KV_TLS_TRUST_INSECURE\n\n"
 
-  start_with_handle_kv_error traefik-certs-dumper kv "$CERTS_SOURCE"\
-        --endpoints "$KV_ENDPOINTS"\
-        --clean\
-        --dest "$SSL_DEST"\
-        --domain-subdir\
-        --watch\
-        --crt-name "$CERT_NAME"\
-        --crt-ext "$CERT_EXTENSION"\
-        --key-name "$KEY_NAME"\
-        --key-ext "$KEY_EXTENSION"\
-        --prefix "$KV_PREFIX"\
-        --suffix "$KV_SUFFIX"\
-        "$( if [ -n "$KV_TIMEOUT" ]; then echo "--connection-timeout $KV_TIMEOUT"; fi )"\
-        "$( if [ -n "$KV_USERNAME" ]; then echo "--username $KV_USERNAME"; fi )"\
-        "$( if [ -n "$KV_PASSWORD"  ]; then echo "--password $KV_PASSWORD"; fi )"\
-        "$( if [ -n "$KV_TLS_CA"  ]; then echo "--tls.ca $KV_TLS_CA"; fi )"\
-        "$( if [ -n "$KV_TLS_CERT"  ]; then echo "--tls.cert $KV_TLS_CERT"; fi )"\
-        "$( if [ -n "$KV_TLS_KEY"  ]; then echo "--tls.key $KV_TLS_KEY"; fi )"\
-        "$( if [ "$KL_TLS_ENABLED" -eq 1 ]; then echo "--tls"; fi )"\
-        "$( if [ "$KV_TLS_CA_OPTIONAL" -eq 1 ]; then echo "--tls.ca.optional"; fi )"\
-        "$( if [ "$KV_TLS_TRUST_INSECURE" -eq 1 ]; then echo "--tls.insecureskipverify"; fi )"\
-        --post-hook "$POST_HOOK"
+  start_with_handle_kv_error traefik-certs-dumper kv "$CERTS_SOURCE" \
+    --endpoints "$KV_ENDPOINTS" \
+    --clean \
+    --dest "$SSL_DEST" \
+    --domain-subdir \
+    --watch \
+    --crt-name "$CERT_NAME" \
+    --crt-ext "$CERT_EXTENSION" \
+    --key-name "$KEY_NAME" \
+    --key-ext "$KEY_EXTENSION" \
+    --prefix "$KV_PREFIX" \
+    --suffix "$KV_SUFFIX" \
+    "$(if [ -n "$KV_TIMEOUT" ]; then echo "--connection-timeout $KV_TIMEOUT"; fi)" \
+    "$(if [ -n "$KV_USERNAME" ]; then echo "--username $KV_USERNAME"; fi)" \
+    "$(if [ -n "$KV_PASSWORD" ]; then echo "--password $KV_PASSWORD"; fi)" \
+    "$(if [ -n "$KV_TLS_CA" ]; then echo "--tls.ca $KV_TLS_CA"; fi)" \
+    "$(if [ -n "$KV_TLS_CERT" ]; then echo "--tls.cert $KV_TLS_CERT"; fi)" \
+    "$(if [ -n "$KV_TLS_KEY" ]; then echo "--tls.key $KV_TLS_KEY"; fi)" \
+    "$(if [ "$KL_TLS_ENABLED" -eq 1 ]; then echo "--tls"; fi)" \
+    "$(if [ "$KV_TLS_CA_OPTIONAL" -eq 1 ]; then echo "--tls.ca.optional"; fi)" \
+    "$(if [ "$KV_TLS_TRUST_INSECURE" -eq 1 ]; then echo "--tls.insecureskipverify"; fi)" \
+    --post-hook "$POST_HOOK"
 else
-    echo "[ERROR] Unknown selected certificates source '$CERTS_SOURCE'"
-    exit 1
+  echo "[ERROR] Unknown selected certificates source '$CERTS_SOURCE'"
+  exit 1
 fi
 
 echo "[ERROR] Fatal error, the program will exit..."
