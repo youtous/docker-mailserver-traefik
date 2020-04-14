@@ -19,7 +19,7 @@ function teardown() {
     # mock first certificate generation
     run cp "${BATS_TEST_DIRNAME}/fixtures/acme.v1.json" "${BATS_TEST_DIRNAME}/files/acme.json" && chmod 600 "${BATS_TEST_DIRNAME}/files/acme.json"
     assert_success
-    run docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d -V mailserver mailserver-traefik
+    run docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver-traefik
     assert_success
 
     # test script has been triggered on mailserver
