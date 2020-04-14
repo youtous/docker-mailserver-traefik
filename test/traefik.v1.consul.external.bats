@@ -27,11 +27,13 @@ function teardown() {
     run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME_TRAEFIK}_traefik_1 | grep -F \"Got certificate for domains [traefik.localhost.com]\""
     assert_success
 
-    # launch certificate renewer
-    docker-compose -p "$TEST_STACK_NAME_MAILSERVER" -f "$DOCKER_FILE_MAILSERVER_TESTS" up -d
-
-    # test certificates are dumped
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker exec ${TEST_STACK_NAME_MAILSERVER}_mailserver-traefik_1 ls /tmp/ssl | grep mail.localhost.com"
+    # launch certificate renewer and mailserver
+    # wait until mailserver is up
+    run docker-compose -p "$TEST_STACK_NAME_MAILSERVER" -f "$DOCKER_FILE_MAILSERVER_TESTS" up -d mailserver
+    assert_success
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME_MAILSERVER}_mailserver_1 | grep -F 'mail.localhost.com is up and running'"
+    assert_success
+    run docker-compose -p "$TEST_STACK_NAME_MAILSERVER" -f "$DOCKER_FILE_MAILSERVER_TESTS" up -d
     assert_success
 
     # test posthook certificate is triggered

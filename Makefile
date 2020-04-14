@@ -3,9 +3,11 @@
 .DEFAULT_GOAL= help
 
 build: ## Build the image
+	echo "building latest mailserver-traefik image..."
 	docker build . -t 'mailserver-traefik'
 
 build-test: ## Build the test image
+	echo "building latest mailserver-traefik:test-image image..."
 	docker build . -t 'mailserver-traefik:test-image'
 
 tests: build-test ## Run all the tests. The test image will be built
