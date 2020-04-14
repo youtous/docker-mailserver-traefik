@@ -89,6 +89,7 @@ On the *cert-renewer-traefik* container, configure the following environment var
 | -------- | ----------- | ---- | ------------- | ------ |
 | **DOMAINS** | domain to watch, separate domains using a coma | *required* |  | any _tld_ seperated by a coma. e.g.: mail.server.com,mail.localhost.com
 | **CERTS_SOURCE** | source used to retrieve certificates | *optional* | file | file, consul, etc, zookeeper, boltdb
+| **PUSH_PERIOD** | by default, certificates will be pushed when a change is detected and every *PUSH_PERIOD*, allowing new containers to get existing certificates | *optional* | 15m | *0* = disabled (certificates are pushed only when updated)<br> *<int>m/s/h* - see [man timeout](https://linux.die.net/man/1/timeout) )
 
 Other environment variables depends on the **CERTS_SOURCE** selected.
 
