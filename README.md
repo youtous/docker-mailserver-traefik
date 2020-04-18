@@ -177,7 +177,7 @@ You can attach a traefik rule directly on the *mailserver* service in order to g
   This testing environment simulates a complete stack : traefik + acme server acting like Let's Encrypt, have a look! 
 - [Configuration for multidomains](/test/files/docker-compose.traefik.v1.multidomains.yml)
 - [Configuration for multiservers](/test/files/docker-compose.traefik.v1.multiservers.yml)
-- Use `make tests` to run tests (docker-compose is required).
+- Use `make tests` to run tests (docker-compose is required, swarm will be activated then disabled).
 - [tests](/test) - Tests directory contains useful resources listing different usages (multidomains, multiservers, etc).
 - [traefik-certs-dumper](https://github.com/ldez/traefik-certs-dumper) - Used in this image for watching certificates
 ### Licence
