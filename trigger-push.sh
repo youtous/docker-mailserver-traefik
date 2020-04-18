@@ -18,7 +18,22 @@ for domain in "${DOMAINS_ARRAY[@]}"; do
   fi
 
   # listing dockermailserver containers using label
-  targets_id=($(docker ps --filter="label=${LABEL}=${domain}" --format "{{ .ID }}"))
+  targets_id=()
+  if isSwarmNode; then
+    services_id=$(docker service ls --filter="label=${LABEL}=${domain}" --format="{{.ID}}")
+
+    for service in "${services_id[@]}"; do
+      tasks_names=$(docker service ps "${service}" --format='{{.Name}}')
+
+      for task in "${tasks_names[@]}"; do
+        containers_id=($(docker ps --filter="name=${task}" --format="{{.ID}}" ))
+        # append containers to target_id
+        targets_id=("${targets_id[@]}" "${containers_id[@]}")
+      done
+    done
+  else
+    targets_id=($(docker ps --filter="label=${LABEL}=${domain}" --format="{{ .ID }}"))
+  fi
 
   echo "[INFO] Pushing $domain to ${#targets_id[@]} subscribed containers"
   for container_id in "${targets_id[@]}"; do
