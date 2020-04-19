@@ -88,13 +88,17 @@ function waitSwarmStackDown() {
     repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker stack ps $TEST_STACK_NAME && false || true"
 }
 
+function statusStack() {
+    echo "$(docker stack ps $TEST_STACK_NAME)" >&3
+}
+
 function waitUntilStackCountRunningServices() {
     repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" [ "$(docker stack ps $TEST_STACK_NAME --filter='desired-state=running' | wc -l)" == "$(($@+1))" ]
     echo "stack $TEST_STACK_NAME is up!" >&3
 }
 
 function waitUntilTraefikReady() {
-    repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" curl http://traefik.localhost.com --resolve "traefik.localhost.com:80:$(ping -c 1 localhost | grep '64 bytes from ' | awk '{print $4}' | cut -d':' -f1)"
+    repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" curl https://localhost -v4 --insecure
     echo "stack $TEST_STACK_NAME: traefik is ready!" >&3
 }
 

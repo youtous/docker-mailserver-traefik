@@ -12,7 +12,6 @@ services:
       - TRAEFIK_VERSION=1
       - CERTS_SOURCE=file
       - DOMAINS=mail1.localhost.com,mail2.localhost.com
-      - "PUSH_PERIOD=20" # prevent mailserver missing cert
     networks:
       - internal
 
