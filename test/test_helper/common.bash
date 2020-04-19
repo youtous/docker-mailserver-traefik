@@ -112,7 +112,7 @@ function waitUntilTraefikReady() {
 function getFirstContainerOfServiceName() {
     name="$@"
 
-    container_id=$( docker ps --filter="name=$(docker service ps "$(docker service ls --filter="name=${TEST_STACK_NAME}_${name}" --format='{{.ID}}')" --filter='desired-state=running'  --format="{{.ID}}")" --format="{{.ID}}")
+    container_id=$( docker ps --filter="name=$(docker service ps "$(docker service ls --filter="name=${TEST_STACK_NAME}_${name}" --format='{{.ID}}')" --filter='desired-state=running'  --format="{{.ID}}")" --filter="status=running" --format="{{.ID}}")
 
     TIMEOUT=$TEST_TIMEOUT_IN_SECONDS
     STARTTIME=$SECONDS
@@ -123,7 +123,7 @@ function getFirstContainerOfServiceName() {
             return 1
       fi
 
-      container_id=$( docker ps --filter="name=$(docker service ps "$(docker service ls --filter="name=${TEST_STACK_NAME}_${name}" --format='{{.ID}}')"  --filter='desired-state=running' --format="{{.ID}}")" --format="{{.ID}}")
+      container_id=$( docker ps --filter="name=$(docker service ps "$(docker service ls --filter="name=${TEST_STACK_NAME}_${name}" --format='{{.ID}}')"  --filter='desired-state=running' --format="{{.ID}}")"  --filter="status=running" --format="{{.ID}}")
 
       if [ -z "$container_id" ]; then
           sleep 3
