@@ -1,5 +1,5 @@
 #!make
-.PHONY: test build-test clean help
+.PHONY: tests build build-test clean help tests-compose-no-build tests-swarm-no-build tests-no-build
 .DEFAULT_GOAL= help
 
 build: ## Build the image
@@ -10,16 +10,29 @@ build-test: ## Build the test image
 	echo "building latest mailserver-traefik:test-image image..."
 	docker build . -t 'mailserver-traefik:test-image'
 
-tests: build-test ## Run all the tests. The test image will be built
+tests: build-test ## Run all the tests. The test image will be built. Docker swarm will be activated then disabled
 	make tests-no-build
 
-tests-no-build: ## Run all tests without building initial image
-	./test/libs/bats/bin/bats test/*.bats
+tests-no-build: ## Run all tests without building initial image. Docker swarm will be activated then disabled
+	make tests-compose-no-build
+	make tests-swarm-no-build
 	make clean
+
+tests-compose-no-build: ## Run docker-compose tests.
+	echo "Docker-compose tests"
+	docker swarm leave --force || true
+	./test/libs/bats/bin/bats test/*.bats
+
+tests-swarm-no-build: ## Run docker swarm tests. Docker swarm will be activated then disabled.
+	echo "Docker swarm tests"
+	docker swarm init || true
+	./test/libs/bats/bin/bats test/swarm/*.bats
+	docker swarm leave --force || true
 
 clean: ## Remove docker images built.
 	docker rmi mailserver-traefik:test-image
 	rm -f test/files/acme.json
+	rm -f test/files/swarm/acme.json
 
 # see https://suva.sh/posts/well-documented-makefiles/
 help: ## Show this help prompt.

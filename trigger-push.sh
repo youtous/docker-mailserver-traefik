@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+. ./common.sh --source-only
+
 # The trigger script is called when certificates have been changed from traefik.
 # For each domain, this script will push certificates in matching containers (using label directive)
 # then, the tomav-renew-certs script will be executed in the target container allowing the mailserver to renew its certificates.
@@ -18,7 +20,20 @@ for domain in "${DOMAINS_ARRAY[@]}"; do
   fi
 
   # listing dockermailserver containers using label
-  targets_id=($(docker ps --filter="label=${LABEL}=${domain}" --format "{{ .ID }}"))
+  targets_id=($(docker ps --filter="label=${LABEL}=${domain}" --format="{{ .ID }}"))
+  if isSwarmNode; then
+    services_id=($(docker service ls --filter="label=${LABEL}=${domain}" --format="{{.ID}}"))
+
+    for service in "${services_id[@]}"; do
+      tasks_names=($(docker service ps "${service}" --filter='desired-state=running' --format='{{.Name}}'))
+
+      for task in "${tasks_names[@]}"; do
+        containers_id=($(docker ps --filter="name=${task}" --format="{{.ID}}"))
+        # append containers to target_id
+        targets_id=("${targets_id[@]}" "${containers_id[@]}")
+      done
+    done
+  fi
 
   echo "[INFO] Pushing $domain to ${#targets_id[@]} subscribed containers"
   for container_id in "${targets_id[@]}"; do

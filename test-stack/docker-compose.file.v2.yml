@@ -26,6 +26,9 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.mail.rule=Host(`mail.localhost.com`)" # traefik ACME will handle creation of certificates for this domain
       - "traefik.http.routers.mail.entrypoints=websecure"
+      - "traefik.http.routers.mail.middlewares=redirect-webmail@docker" # redirect to a webmail
+      - "traefik.http.middlewares.redirect-webmail.redirectregex.regex=.*"
+      - "traefik.http.middlewares.redirect-webmail.redirectregex.replacement=https://webmail.localhost.com/"
     ports:
       - "25:25"
       - "143:143"

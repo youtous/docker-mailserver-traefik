@@ -37,8 +37,8 @@ ENV TRAEFIK_VERSION=2\
 # Install docker client, bash
 RUN apk update && apk add --no-cache docker-cli bash
 
-COPY handler.sh trigger-push.sh tomav-renew-certs.bash /
-RUN chmod +x /handler.sh /trigger-push.sh /tomav-renew-certs.bash
+COPY handler.sh trigger-push.sh common.sh tomav-renew-certs.bash /
+RUN chmod +x /handler.sh /trigger-push.sh /common.sh /tomav-renew-certs.bash
 
 VOLUME $SSL_DEST
 VOLUME /tmp/traefik

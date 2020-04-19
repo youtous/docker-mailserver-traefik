@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+. ./common.sh --source-only
+
 # Handler watch for changes of given certificates from traefik, if a change occurs :
 #   1. extract certificates and save them in a temporary directory
 #   2. trigger "trigger-push.sh" for pushing certificates in matching mailserver containers
@@ -88,6 +90,12 @@ function start_handler() {
 }
 
 ### Beginning of the script
+
+if isSwarmNode; then
+  echo "[INFO] Running on a swarm cluster node."
+else
+  echo "[INFO] Running on a regular host."
+fi
 
 if [ "$DOMAINS" = "missingdomains" ]; then
   echo "[ERROR] DOMAINS var is not defined. Please define DOMAINS. Abort..."
