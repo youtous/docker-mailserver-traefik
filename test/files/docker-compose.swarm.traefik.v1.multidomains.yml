@@ -75,6 +75,7 @@ services:
     image: letsencrypt/pebble
     command: >
       /bin/sh -c '
+      apk add bind-tools &&
       chmod +x /wait-challtestsrv.sh && sh /wait-challtestsrv.sh &&
       pebble -config /test/my-pebble-config.json -dnsserver challtestsrv:8053
       '
@@ -105,6 +106,7 @@ services:
     image: traefik:v1.7-alpine
     command: >
       /bin/sh -c '
+      apk add curl &&
       chmod +x /update-pebble.sh && sh /update-pebble.sh &&
       update-ca-certificates &&
       traefik --configFile=/etc/traefik/conf/acme.toml

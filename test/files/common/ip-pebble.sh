@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-until ping -c 1 pebble
+until curl https://pebble:4001/dir --insecure
 do
    echo "waiting pebble to be up..."
    sleep 1

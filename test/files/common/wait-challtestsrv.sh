@@ -1,9 +1,8 @@
 #!/usr/bin/env sh
 
-until ping -c 1 challtestsrv
+until dig +short dummy.localhost.com @challtestsrv -p 8053
 do
-   echo "waiting challtestsrv to be up..."
+   echo "waiting challtestsrv DNS to be up..."
    sleep 1
 done
-
-sleep 10
+echo "challtestsrv DNS is up"
