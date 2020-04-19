@@ -76,7 +76,6 @@ setup_file() {
 }
 
 teardown_file() {
-  skip
   docker stack rm "$TEST_STACK_NAME"
   waitSwarmStackDown
   autoCleanSwarmStackVolumes
