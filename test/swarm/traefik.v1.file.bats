@@ -39,12 +39,11 @@ function teardown() {
 }
 
 setup_file() {
-  initSwarmAcmejson
-
   docker stack rm "$TEST_STACK_NAME"
   waitSwarmStackDown
   autoCleanSwarmStackVolumes
 
+  initSwarmAcmejson
   docker stack deploy --compose-file "$DOCKER_FILE_TESTS" "$TEST_STACK_NAME"
   waitUntilStackCountRunningServices 5
 }
