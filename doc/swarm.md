@@ -16,7 +16,7 @@ version: "3.7"
 services:
 
   cert-renewer:
-    image: mailserver-traefik:test-image
+    image: mailserver-traefik:latest
     deploy:
       placement:
         constraints:    # use a node label to identify deployment placement 
