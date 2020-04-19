@@ -12,6 +12,7 @@ Docker image which automatically renews [tomav/docker-mailserver ](https://githu
 ### Features
 
 - Automatically push certificates to *mailserver* containers on container creation or on cert renewal
+- Tested on _docker compose_ and _docker swarm_
 - Supports _traefik_ v1 and v2
 - Handles all ACME storage strategies 
 - Restarts dovecot and postfix after certificate update

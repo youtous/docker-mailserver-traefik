@@ -22,13 +22,13 @@ for domain in "${DOMAINS_ARRAY[@]}"; do
   # listing dockermailserver containers using label
   targets_id=($(docker ps --filter="label=${LABEL}=${domain}" --format="{{ .ID }}"))
   if isSwarmNode; then
-    services_id=$(docker service ls --filter="label=${LABEL}=${domain}" --format="{{.ID}}")
+    services_id=($(docker service ls --filter="label=${LABEL}=${domain}" --format="{{.ID}}"))
 
     for service in "${services_id[@]}"; do
-      tasks_names=$(docker service ps "${service}" --format='{{.Name}}')
+      tasks_names=($(docker service ps "${service}" --filter='desired-state=running' --format='{{.Name}}'))
 
       for task in "${tasks_names[@]}"; do
-        containers_id=($(docker ps --filter="name=${task}" --format="{{.ID}}" ))
+        containers_id=($(docker ps --filter="name=${task}" --format="{{.ID}}"))
         # append containers to target_id
         targets_id=("${targets_id[@]}" "${containers_id[@]}")
       done
