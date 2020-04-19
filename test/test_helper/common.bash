@@ -89,7 +89,7 @@ function waitSwarmStackDown() {
 }
 
 function statusStack() {
-    echo "$(docker stack ps $TEST_STACK_NAME)" >&3
+  echo "# $(docker stack ps $TEST_STACK_NAME)" >&3
 }
 
 function waitUntilStackCountRunningServices() {
