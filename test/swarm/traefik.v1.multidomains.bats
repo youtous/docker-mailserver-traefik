@@ -72,6 +72,7 @@ setup_file() {
   initSwarmAcmejson
   docker stack deploy --compose-file "$DOCKER_FILE_TESTS" "$TEST_STACK_NAME"
   waitUntilStackCountRunningServices 6
+  waitUntilTraefikReady
 }
 
 teardown_file() {

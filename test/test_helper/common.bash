@@ -93,6 +93,11 @@ function waitUntilStackCountRunningServices() {
     echo "stack $TEST_STACK_NAME is up!" >&3
 }
 
+function waitUntilTraefikReady() {
+    repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" curl http://traefik.localhost.com --resolve 'traefik.localhost.com:80:127.0.01'
+    echo "stack $TEST_STACK_NAME: traefik is ready!" >&3
+}
+
 function getFirstContainerOfServiceName() {
     name="$@"
 
