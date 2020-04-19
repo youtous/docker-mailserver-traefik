@@ -73,6 +73,13 @@ function cleanSwarmStackVolumes() {
   done
 }
 
+function acmejsonSingleIOFinished() {
+  repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "[ \"\$(du "${BATS_TEST_DIRNAME}"/files/acme.json | awk '{print \$1}')\" -gt \"10\" ]"
+}
+function acmejsonIOFinished() {
+  repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "[ \"\$(du "${BATS_TEST_DIRNAME}"/files/acme.json | awk '{print \$1}')\" -gt \"15\" ]"
+}
+
 function autoCleanSwarmStackVolumes() {
     repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" cleanSwarmStackVolumes
 }

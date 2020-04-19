@@ -53,6 +53,8 @@ setup_file() {
   # wait traefik+pebble are up
   run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_traefik_1 | grep -F \"Adding certificate for domain(s) mail.localhost.com\""
   assert_success
+  acmejsonSingleIOFinished
+
   # then up the renewer
   run docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver-traefik
   assert_success

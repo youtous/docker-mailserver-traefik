@@ -71,6 +71,9 @@ setup_file() {
   # wait until mailserver is up
   run docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver1 mailserver2
   assert_success
+  # wait IO done
+  acmejsonIOFinished
+
   run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver1_1 | grep -F 'mail1.localhost.com is up and running'"
   assert_success
   run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver2_1 | grep -F 'mail2.localhost.com is up and running'"
