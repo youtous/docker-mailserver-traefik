@@ -25,7 +25,7 @@ function teardown() {
     assert_success
 
     # test posthook certificate is triggered
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${cert_renewer_id} | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${cert_renewer_id} | grep -F '[INFO] mail - Cert update: new certificate copied into container'"
     assert_success
 
     # test presence of certificates
