@@ -25,7 +25,7 @@ Docker image which automatically renews [tomav/docker-mailserver ](https://githu
 
 Set a label on mailserver container and define SSL configuration:
 ```
-docker run -d --name mailserver --label mailserver-traefik.renew.domain=mail.localhost.com -e SSL_TYPE=manual -e SSL_KEY_PATH=/etc/postfix/ssl/key -e SSL_CERT_PATH=/etc/postfix/ssl/cert tvial/docker-mailserver
+docker run -d --name mailserver --label mailserver-traefik.renew.domain=mail.localhost.com -e SSL_TYPE=manual -e SSL_KEY_PATH=/var/mail-state/manual-ssl/key -e SSL_CERT_PATH=/var/mail-state/manual-ssl/cert tvial/docker-mailserver
 ```
 
 Then start the traefik certificate renewer:
@@ -63,8 +63,8 @@ services:
       - "traefik.http.middlewares.redirect-webmail.redirectregex.replacement=https://webmail.localhost.com/"
     environment:
       - SSL_TYPE=manual # enable SSL on the mailserver
-      - SSL_CERT_PATH=/etc/postfix/ssl/cert
-      - SSL_KEY_PATH=/etc/postfix/ssl/key
+      - SSL_CERT_PATH=/var/mail-state/manual-ssl/cert
+      - SSL_KEY_PATH=/var/mail-state/manual-ssl/key
 ```
 ### Usage
 
@@ -76,8 +76,8 @@ On the *mailserver* container : define the **label** and **set SSL environment**
       - "mailserver-traefik.renew.domain=mail.localhost.com" # required label for hooking up the mailserver service
     environment:
       - SSL_TYPE=manual # required env values, enable SSL on the mailserver
-      - SSL_CERT_PATH=/etc/postfix/ssl/cert
-      - SSL_KEY_PATH=/etc/postfix/ssl/key
+      - SSL_CERT_PATH=/var/mail-state/manual-ssl/cert
+      - SSL_KEY_PATH=/var/mail-state/manual-ssl/key
 ```
 
 On the *cert-renewer-traefik* container, configure the following environment variables and map docker socket:
@@ -172,8 +172,8 @@ See [swarm cluster](/doc/swarm.md).
       - .mailserver.env
     environment:
       - SSL_TYPE=manual # required, do not change SSL_TYPE,SSL_CERT_PATH,SSL_KEY_PATH values
-      - SSL_CERT_PATH=/etc/postfix/ssl/cert
-      - SSL_KEY_PATH=/etc/postfix/ssl/key
+      - SSL_CERT_PATH=/var/mail-state/manual-ssl/cert
+      - SSL_KEY_PATH=/var/mail-state/manual-ssl/key
 ```
 When a new certificate is issued, *cert-renewer-traefik* will push it into the *mailserver* then restart dovecot and postfix services. The mailserver certificates will always be up to date :)
 

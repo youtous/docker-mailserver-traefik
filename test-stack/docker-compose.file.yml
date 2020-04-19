@@ -41,8 +41,8 @@ services:
       - .mailserver.env
     environment:
       - SSL_TYPE=manual
-      - SSL_CERT_PATH=/etc/postfix/ssl/cert
-      - SSL_KEY_PATH=/etc/postfix/ssl/key
+      - SSL_CERT_PATH=/var/mail-state/manual-ssl/cert
+      - SSL_KEY_PATH=/var/mail-state/manual-ssl/key
     networks:
       bluenet:
         ipv4_address: 10.77.77.44
