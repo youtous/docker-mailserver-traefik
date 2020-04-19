@@ -46,7 +46,11 @@ services:
   ### ACME test server ###
   pebble:
     image: letsencrypt/pebble
-    command: pebble -config /test/my-pebble-config.json -dnsserver challtestsrv:8053
+    command: >
+      /bin/sh -c '
+      chmod +x /wait-challtestsrv.sh && sh /wait-challtestsrv.sh &&
+      pebble -config /test/my-pebble-config.json -dnsserver challtestsrv:8053
+      '
     deploy:
       replicas: 1
     environment:
@@ -56,10 +60,9 @@ services:
     volumes:
       - ./common/peeble/certs/:/test/certs/:ro # import peeble RootCA
       - ./common/peeble/peeble-config.json:/test/my-pebble-config.json:ro
+      - "./common/wait-challtestsrv.sh:/wait-challtestsrv.sh"
     networks:
       bluenet:
-    depends_on:
-      - challtestsrv
   challtestsrv: # dns server for pebble
     image: letsencrypt/pebble-challtestsrv:latest
     volumes:

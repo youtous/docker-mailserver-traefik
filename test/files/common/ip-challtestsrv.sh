@@ -2,7 +2,7 @@
 
 until ping -c 1 traefik
 do
-   echo "waiting pebble to be up..."
+   echo "waiting traefik to be up..."
    sleep 1
 done
 
