@@ -58,14 +58,24 @@ else
   # cp new certificate, update permissions
   cp $Newcert $Currentcert
   cp $Newkey $Currentkey
-  chmod 600 $Currentcert
-  chmod 600 $Currentkey
+  chmod 600 $Currentcert $Currentkey $Newcert $Newkey
 
   echo "[INFO] $FQDN - Cert update: new certificate copied into container"
 
   echo "[INFO] $FQDN - Cert update: restarting daemons Postfix and Dovecot"
   supervisorctl restart postfix
   supervisorctl restart dovecot
+
+  if [ -d "/var/mail-state" ]; then
+    echo "[INFO] $FQDN - ONE_DIR detected, generating copy in /var/mail/manual-ssl/{cert,key}"
+    mkdir -p /var/mail-state/manual-ssl/
+    cp -f $Newcert /var/mail-state/manual-ssl/cert
+    cp -f $Newkey /var/mail-state/manual-ssl/key
+    # ensure new permissions
+    chmod 600 /var/mail-state/manual-ssl/cert /var/mail-state/manual-ssl/key
+  else
+    echo "[INFO] $FQDN - ONE_DIR disabled, certificate will not be persisted"
+  fi
 
   # move to backup for memory
   mv $Newkey $Backupkey
