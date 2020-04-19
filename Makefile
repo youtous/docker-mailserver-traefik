@@ -32,6 +32,7 @@ tests-swarm-no-build: ## Run docker swarm tests. Docker swarm will be activated 
 clean: ## Remove docker images built.
 	docker rmi mailserver-traefik:test-image
 	rm -f test/files/acme.json
+	rm -f test/files/swarm/acme.json
 
 # see https://suva.sh/posts/well-documented-makefiles/
 help: ## Show this help prompt.

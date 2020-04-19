@@ -58,3 +58,43 @@ function initAcmejson() {
 	touch "$BATS_TEST_DIRNAME/files/acme.json"
 	chmod 600 "$BATS_TEST_DIRNAME/files/acme.json"
 }
+function initSwarmAcmejson() {
+  echo "CREATE empty acme.json file"
+	rm -f "$BATS_TEST_DIRNAME/../files/acme.json"
+	touch "$BATS_TEST_DIRNAME/../files/acme.json"
+	chmod 600 "$BATS_TEST_DIRNAME/../files/acme.json"
+}
+
+function cleanSwarmStackVolumes() {
+  for volume in $(docker volume ls -q) ; do
+    if [ "$(docker inspect $volume --format '{{ index .Labels "com.docker.stack.namespace" }}')" == "$TEST_STACK_NAME" ] ; then
+      repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" docker volume rm $volume ;
+    fi ;
+  done
+}
+
+function autoCleanSwarmStackVolumes() {
+    repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" cleanSwarmStackVolumes
+}
+
+function cleanSwarmStackNetworks() {
+    networks=($(docker network ls --filter="name=${TEST_STACK_NAME}" --format="{{.ID}}"))
+    for network in "${networks[@]}" ; do
+      docker network rm "$network"
+    done
+}
+
+function waitSwarmStackDown() {
+    repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker stack ps $TEST_STACK_NAME && false || true"
+}
+
+function waitUntilStackCountRunningServices() {
+    repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" [ "$(docker stack ps $TEST_STACK_NAME --filter='desired-state=running' | wc -l)" == "$(($@+1))" ]
+    echo "stack $TEST_STACK_NAME is up!" >&3
+}
+
+function getFirstContainerOfServiceName() {
+    name="$@"
+    container_id=$( docker ps --filter="name=$(docker service ps "$(docker service ls --filter="name=${TEST_STACK_NAME}_${name}" --format='{{.ID}}')"  --format="{{.ID}}")" --format="{{.ID}}")
+    echo "$container_id"
+}

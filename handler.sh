@@ -92,7 +92,9 @@ function start_handler() {
 ### Beginning of the script
 
 if isSwarmNode; then
-  echo "[INFO] Running on a swarm node."
+  echo "[INFO] Running on a swarm cluster node."
+else
+  echo "[INFO] Running on a regular host."
 fi
 
 if [ "$DOMAINS" = "missingdomains" ]; then

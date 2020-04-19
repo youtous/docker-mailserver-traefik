@@ -5,9 +5,11 @@
 # indicates if the current node is part of a swarm cluster
 function isSwarmNode() {
     if [ "$(docker info --format '{{.Swarm.LocalNodeState}}')" == "inactive" ]; then
-        return 0
+        false
+        return
     else
-        return 1
+        true
+        return
     fi
 }
 

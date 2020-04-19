@@ -1,0 +1,118 @@
+version: "3.7"
+
+services:
+
+  ### Autorenew docker-mailserver part ###
+  cert-renewer:
+    image: mailserver-traefik:test-image
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./acme.json:/tmp/traefik/acme.json
+    environment:
+      - TRAEFIK_VERSION=1
+      - CERTS_SOURCE=file
+      - DOMAINS=mail.localhost.com
+      - "PUSH_PERIOD=20" # prevent mailserver missing cert
+    networks:
+      - internal
+
+  mailserver:
+    image: tvial/docker-mailserver:latest
+    hostname: mail
+    domainname: localhost.com
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - "mailserver-traefik.renew.domain=mail.localhost.com"
+        - "traefik.port=443" # dummy port, not used
+        - "traefik.frontend.rule=Host:mail.localhost.com" # traefik ACME will handle creation of certificates for this domain
+        - "traefik.enable=true"
+    volumes:
+      - maildata:/var/mail
+      - mailstate:/var/mail-state
+      - maillogs:/var/log/mail
+      - ./common/.mailserver-config/:/tmp/docker-mailserver/
+      - ./common/.mailserver-config/dh-dovecot.pem:/etc/dovecot/dh.pem:ro # saving us computation
+    env_file:
+      - ./common/.mailserver.env
+    environment:
+      - SSL_TYPE=manual
+      - SSL_CERT_PATH=/etc/postfix/ssl/cert
+      - SSL_KEY_PATH=/etc/postfix/ssl/key
+    networks:
+      bluenet:
+
+  ### ACME test server ###
+  pebble:
+    image: letsencrypt/pebble
+    command: pebble -config /test/my-pebble-config.json -dnsserver challtestsrv:8053
+    deploy:
+      replicas: 1
+    environment:
+      - PEBBLE_VA_NOSLEEP=1
+    extra_hosts:
+      - acme.localhost.com:0.0.0.0 # test ACME server (peeble)
+    volumes:
+      - ./common/peeble/certs/:/test/certs/:ro # import peeble RootCA
+      - ./common/peeble/peeble-config.json:/test/my-pebble-config.json:ro
+    networks:
+      bluenet:
+    depends_on:
+      - challtestsrv
+  challtestsrv: # dns server for pebble
+    image: letsencrypt/pebble-challtestsrv:latest
+    volumes:
+      - "./common/ip-challtestsrv.sh:/challtestsrv.sh"
+    command: sh /challtestsrv.sh
+    deploy:
+      replicas: 1
+    networks:
+      bluenet:
+
+  ### Traefik part ###
+  traefik:
+    image: traefik:v1.7-alpine
+    command: >
+      /bin/sh -c '
+      chmod +x /update-pebble.sh && sh /update-pebble.sh &&
+      update-ca-certificates &&
+      traefik --configFile=/etc/traefik/conf/acme.toml
+      '
+    volumes:
+      - ./common/peeble/certs/pebble.minica.pem:/usr/local/share/ca-certificates/pebble.minica.pem:ro # import peeble RootCA
+      - "./common/traefik.swarm.v1.file.toml:/etc/traefik/conf/acme.toml:ro"
+      - "./common/ip-pebble.sh:/update-pebble.sh"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - ./acme.json:/tmp/acme/acme.json:rw
+    ports:
+      - "80:80"
+      - "443:443"
+      - "5002:5002" # Needed for HTTP challenge
+    deploy:
+      replicas: 1
+      labels:
+        - "traefik.port=8080"
+        - "traefik.backend=traefikception"
+        - "traefik.frontend.rule=Host:traefik.localhost.com"
+        - "traefik.enable=true"
+    networks:
+      bluenet:
+
+
+networks:
+  internal: # no internet acess
+    internal: true
+  bluenet:
+    ipam:
+      config:
+        - subnet: 10.77.77.0/24
+
+volumes:
+  maildata:
+    driver: local
+  mailstate:
+    driver: local
+  maillogs:
+    driver: local

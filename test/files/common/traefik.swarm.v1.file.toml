@@ -1,0 +1,38 @@
+logLevel = "DEBUG"
+
+defaultEntryPoints = ["http", "https", "http5002challenge"]
+# import peeble RootCA
+RootCAs = [ "/usr/local/share/ca-certificates/pebble.minica.pem" ]
+
+[entryPoints]
+  [entryPoints.http5002challenge]
+  address = ":5002"
+  [entryPoints.http]
+  address = ":80"
+    [entryPoints.http.redirect]
+    entryPoint = "https"
+  [entryPoints.https]
+  address = ":443"
+    [entryPoints.https.tls]
+
+[acme]
+email = "test@traefik.io"
+entryPoint = "https"
+onHostRule = true
+storage = "/tmp/acme/acme.json"
+caServer = "https://acme.localhost.com:4001/dir"
+acmeLogging = true
+  [acme.httpChallenge]
+  entryPoint="http5002challenge"
+
+
+[api]
+
+[docker]
+endpoint = "unix:///var/run/docker.sock"
+domain = "traefik.localhost.com"
+watch = true
+exposedByDefault = false
+swarmMode = true
+
+
