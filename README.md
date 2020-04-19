@@ -181,6 +181,14 @@ You can attach a traefik rule directly on the *mailserver* service in order to g
 
 *cert-renewer-traefik* service does not require to be running in the *mailserver* stack, it can handles many *mailserver* and many domains. See: [See also](#see-also).
 
+#### Using ONE_DIR
+
+When `ONE_DIR=1` is enabled on *mailserver*, state of the container will be consolidated across runs using a docker volume.<br/>
+The *cert-renewer-traefik* detects when the *mailserver* has `ONE_DIR` enabled and will copy the certificates.<br/>
+That's why it's important not to change `SSL_CERT_PATH=/var/mail-state/manual-ssl/cert` and `SSL_KEY_PATH=/var/mail-state/manual-ssl/key`.
+
+When `ONE_DIR` is disabled, certificates will be lost at the end of the container's lifetime. Even if `ONE_DIR` is disabled, you must set 
+`SSL_CERT_PATH` and `SSL_KEY_PATH` with the indicated values.
 
 ### See also
 
