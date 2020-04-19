@@ -94,7 +94,7 @@ function waitUntilStackCountRunningServices() {
 }
 
 function waitUntilTraefikReady() {
-    repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" curl http://traefik.localhost.com --resolve 'traefik.localhost.com:80:127.0.0.1'
+    repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" curl http://traefik.localhost.com --resolve "traefik.localhost.com:80:$(ping -c 1 localhost | grep '64 bytes from ' | awk '{print $4}' | cut -d':' -f1)"
     echo "stack $TEST_STACK_NAME: traefik is ready!" >&3
 }
 
