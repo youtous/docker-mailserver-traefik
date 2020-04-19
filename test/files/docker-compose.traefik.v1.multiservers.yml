@@ -25,7 +25,6 @@ services:
       - "traefik.enable=true"
     volumes:
       - maildata1:/var/mail
-      - mailstate1:/var/mail-state
       - maillogs1:/var/log/mail
       - ./common/.mailserver-config/:/tmp/docker-mailserver/
       - ./common/.mailserver-config/dh-dovecot.pem:/etc/dovecot/dh.pem:ro # saving us computation
@@ -33,8 +32,8 @@ services:
       - ./common/.mailserver.env
     environment:
       - SSL_TYPE=manual
-      - SSL_CERT_PATH=/etc/postfix/ssl/cert
-      - SSL_KEY_PATH=/etc/postfix/ssl/key
+      - SSL_CERT_PATH=/var/mail-state/manual-ssl/cert
+      - SSL_KEY_PATH=/var/mail-state/manual-ssl/key
     networks:
       bluenet:
 
@@ -46,7 +45,6 @@ services:
       - "mailserver-traefik.renew.domain=mail.localhost.com"
     volumes:
       - maildata2:/var/mail
-      - mailstate2:/var/mail-state
       - maillogs2:/var/log/mail
       - ./common/.mailserver-config/:/tmp/docker-mailserver/
       - ./common/.mailserver-config/dh-dovecot.pem:/etc/dovecot/dh.pem:ro # saving us computation
@@ -54,8 +52,8 @@ services:
       - ./common/.mailserver.env
     environment:
       - SSL_TYPE=manual
-      - SSL_CERT_PATH=/etc/postfix/ssl/cert
-      - SSL_KEY_PATH=/etc/postfix/ssl/key
+      - SSL_CERT_PATH=/var/mail-state/manual-ssl/cert
+      - SSL_KEY_PATH=/var/mail-state/manual-ssl/key
     networks:
       bluenet:
 
@@ -122,13 +120,9 @@ networks:
 volumes:
   maildata1:
     driver: local
-  mailstate1:
-    driver: local
   maillogs1:
     driver: local
   maildata2:
-    driver: local
-  mailstate2:
     driver: local
   maillogs2:
     driver: local

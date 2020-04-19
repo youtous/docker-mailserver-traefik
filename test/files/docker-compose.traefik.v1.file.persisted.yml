@@ -7,16 +7,23 @@ services:
     image: mailserver-traefik:test-image
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - boltdb:/tmp/boltdb/:ro
+      - ./acme.json:/tmp/traefik/acme.json
     environment:
-      - CERTS_SOURCE=boltdb
-      - KV_ENDPOINTS=/tmp/boltdb/my.db
+      - TRAEFIK_VERSION=1
+      - CERTS_SOURCE=file
       - DOMAINS=mail.localhost.com
     networks:
       - internal
 
   mailserver:
     image: tvial/docker-mailserver:latest
+    command: >
+      sh -c '
+      cp /tmp/dovecot/dh.pem /var/mail-state/dhparams.pem &&
+      mkdir -p /var/mail-state/lib-shared &&
+      cp /var/mail-state/dhparams.pem /var/mail-state/lib-shared/dhparams.pem &&
+      supervisord -c /etc/supervisor/supervisord.conf
+      '
     hostname: mail
     domainname: localhost.com
     labels:
@@ -26,11 +33,13 @@ services:
     volumes:
       - maildata:/var/mail
       - maillogs:/var/log/mail
+      - mailstate:/var/mail-state
       - ./common/.mailserver-config/:/tmp/docker-mailserver/
-      - ./common/.mailserver-config/dh-dovecot.pem:/etc/dovecot/dh.pem:ro # saving us computation
+      - ./common/.mailserver-config/dh-dovecot.pem:/tmp/dovecot/dh.pem:ro # saving us computation
     env_file:
       - ./common/.mailserver.env
     environment:
+      - ONE_DIR=1
       - SSL_TYPE=manual
       - SSL_CERT_PATH=/var/mail-state/manual-ssl/cert
       - SSL_KEY_PATH=/var/mail-state/manual-ssl/key
@@ -69,9 +78,9 @@ services:
       - acme.localhost.com:10.77.77.77 # test ACME server (peeble)
     volumes:
       - ./common/peeble/certs/pebble.minica.pem:/usr/local/share/ca-certificates/pebble.minica.pem:ro # import peeble RootCA
-      - "./common/traefik.v1.boltdb.toml:/etc/traefik/conf/acme.toml:ro"
+      - "./common/traefik.v1.file.toml:/etc/traefik/conf/acme.toml:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - boltdb:/tmp/boltdb/:rw
+      - ./acme.json:/tmp/acme/acme.json:rw
     ports:
       - "80:80"
       - "443:443"
@@ -99,9 +108,9 @@ networks:
         - subnet: 10.77.77.0/24
 
 volumes:
-  boltdb:
-    driver: local
   maildata:
+    driver: local
+  mailstate:
     driver: local
   maillogs:
     driver: local

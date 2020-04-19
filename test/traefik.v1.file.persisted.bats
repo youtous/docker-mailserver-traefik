@@ -3,7 +3,7 @@ load 'libs/bats-assert/load'
 load 'test_helper/common'
 
 function setup() {
-  DOCKER_FILE_TESTS="$BATS_TEST_DIRNAME/files/docker-compose.traefik.v1.file.yml"
+  DOCKER_FILE_TESTS="$BATS_TEST_DIRNAME/files/docker-compose.traefik.v1.file.persisted.yml"
   run_setup_file_if_necessary
 }
 
@@ -36,9 +36,10 @@ function teardown() {
     assert_output --partial 'key'
 }
 
-@test "check: certificate is not persisted when ONE_DIR=0" {
+@test "check: certificate is persisted when ONE_DIR=1" {
     run docker exec "${TEST_STACK_NAME}_mailserver_1" ls /var/mail-state/manual-ssl
-    assert_failure
+    assert_output --partial 'cert'
+    assert_output --partial 'key'
 }
 
 @test "last" {

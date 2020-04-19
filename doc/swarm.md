@@ -54,14 +54,13 @@ services:
       - "993:993"
     volumes:
       - maildata:/var/mail
-      - mailstate:/var/mail-state
       - maillogs:/var/log/mail
     env_file:
       - .mailserver.env
     environment:
       - SSL_TYPE=manual
-      - SSL_CERT_PATH=/etc/postfix/ssl/cert
-      - SSL_KEY_PATH=/etc/postfix/ssl/key
+      - SSL_CERT_PATH=/var/mail-state/manual-ssl/cert
+      - SSL_KEY_PATH=/var/mail-state/manual-ssl/key
       - OVERRIDE_HOSTNAME=mail.localhost.com
     networks:
       bluenet:
@@ -76,8 +75,6 @@ networks:
 
 volumes:
   maildata:
-    driver: local
-  mailstate:
     driver: local
   maillogs:
     driver: local
