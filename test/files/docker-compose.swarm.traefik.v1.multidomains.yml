@@ -28,7 +28,6 @@ services:
         - "traefik.enable=true"
     volumes:
       - maildata:/var/mail
-      - mailstate:/var/mail-state
       - maillogs:/var/log/mail
       - ./common/.mailserver-config/:/tmp/docker-mailserver/
       - ./common/.mailserver-config/dh-dovecot.pem:/etc/dovecot/dh.pem:ro # saving us computation
@@ -55,7 +54,6 @@ services:
         - "traefik.enable=true"
     volumes:
       - maildata2:/var/mail
-      - mailstate2:/var/mail-state
       - maillogs2:/var/log/mail
       - ./common/.mailserver-config/:/tmp/docker-mailserver/
       - ./common/.mailserver-config/dh-dovecot.pem:/etc/dovecot/dh.pem:ro # saving us computation
@@ -142,13 +140,9 @@ networks:
 volumes:
   maildata:
     driver: local
-  mailstate:
-    driver: local
   maillogs:
     driver: local
   maildata2:
-    driver: local
-  mailstate2:
     driver: local
   maillogs2:
     driver: local
