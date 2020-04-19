@@ -53,9 +53,14 @@ services:
     labels:
       - "mailserver-traefik.renew.domain=mail.localhost.com" # tag the service 
 
+      # traefik configuration using labels, not required
       - "traefik.enable=true" # use traefik v2 for certificate generation
+      - "traefik.port=443" # dummy port, required generating certs with traefik
       - "traefik.http.routers.mail.rule=Host(`mail.localhost.com`)" 
       - "traefik.http.routers.mail.entrypoints=websecure"
+      - "traefik.http.routers.mail.middlewares=redirect-webmail@docker" # redirect to webmail
+      - "traefik.http.middlewares.redirect-webmail.redirectregex.regex=.*"
+      - "traefik.http.middlewares.redirect-webmail.redirectregex.replacement=https://webmail.localhost.com/"
     environment:
       - SSL_TYPE=manual # enable SSL on the mailserver
       - SSL_CERT_PATH=/etc/postfix/ssl/cert
@@ -126,6 +131,9 @@ By default, traefik v2 is selected, change it depending of your traefik version.
 #### Using file
 See [Using docker-compose](#using-docker-compose)
 
+#### Usage in a swarm cluster
+See [swarm cluster](/doc/swarm.md).
+
 #### Using a KV Store
 *docker-compose.yml*
 ```yaml
@@ -144,11 +152,13 @@ See [Using docker-compose](#using-docker-compose)
     domainname: localhost.com
     labels:
       - "mailserver-traefik.renew.domain=mail.localhost.com" # required, tag this service
-
+      
+      # traefik v1 using labels
       - "traefik.frontend.rule=Host:mail.localhost.com" # traefik ACME will handle creation of certificates for this domain
       - "traefik.frontend.redirect.replacement=https://webmail.localhost.com/" # redirect access to smtp/imap domain to and other domain (e.g. webmail or autoconfig)
       - "traefik.frontend.redirect.regex=.*"
       - "traefik.enable=true"
+      - "traefik.port=443"
     ports:
       - "25:25"
       - "143:143"
