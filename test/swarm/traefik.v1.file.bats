@@ -25,7 +25,7 @@ function teardown() {
     assert_success
 
     # test posthook certificate is triggered
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${mailserver_id} | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${cert_renewer_id} | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
     assert_success
 
     # test presence of certificates
@@ -50,8 +50,8 @@ setup_file() {
 }
 
 teardown_file() {
-  skip
-  repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" cleanSwarmStackVolumes
   docker stack rm "$TEST_STACK_NAME"
+  waitSwarmStackDown
+  autoCleanSwarmStackVolumes
 }
 

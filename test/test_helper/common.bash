@@ -95,6 +95,24 @@ function waitUntilStackCountRunningServices() {
 
 function getFirstContainerOfServiceName() {
     name="$@"
+
     container_id=$( docker ps --filter="name=$(docker service ps "$(docker service ls --filter="name=${TEST_STACK_NAME}_${name}" --format='{{.ID}}')"  --format="{{.ID}}")" --format="{{.ID}}")
+
+    TIMEOUT=$TEST_TIMEOUT_IN_SECONDS
+    STARTTIME=$SECONDS
+
+    while [ -z "$container_id" ]; do
+      if [[ $(($SECONDS - $STARTTIME )) -gt $TIMEOUT ]]; then
+            echo "Timed out on get container_id: $@"
+            return 1
+      fi
+
+      container_id=$( docker ps --filter="name=$(docker service ps "$(docker service ls --filter="name=${TEST_STACK_NAME}_${name}" --format='{{.ID}}')"  --format="{{.ID}}")" --format="{{.ID}}")
+
+      if [ -z "$container_id" ]; then
+          sleep 3
+      fi
+    done
+
     echo "$container_id"
 }
