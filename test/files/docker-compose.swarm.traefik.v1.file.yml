@@ -18,8 +18,6 @@ services:
 
   mailserver:
     image: tvial/docker-mailserver:latest
-    hostname: mail
-    domainname: localhost.com
     deploy:
       placement:
         constraints:
@@ -41,6 +39,7 @@ services:
       - SSL_TYPE=manual
       - SSL_CERT_PATH=/etc/postfix/ssl/cert
       - SSL_KEY_PATH=/etc/postfix/ssl/key
+      - OVERRIDE_HOSTNAME=mail.localhost.com
     networks:
       bluenet:
 

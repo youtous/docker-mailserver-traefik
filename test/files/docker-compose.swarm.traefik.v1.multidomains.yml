@@ -39,6 +39,7 @@ services:
       - SSL_TYPE=manual
       - SSL_CERT_PATH=/etc/postfix/ssl/cert
       - SSL_KEY_PATH=/etc/postfix/ssl/key
+      - OVERRIDE_HOSTNAME=mail1.localhost.com
     networks:
       bluenet:
 
@@ -65,6 +66,7 @@ services:
       - SSL_TYPE=manual
       - SSL_CERT_PATH=/etc/postfix/ssl/cert
       - SSL_KEY_PATH=/etc/postfix/ssl/key
+      - OVERRIDE_HOSTNAME=mail2.localhost.com
     networks:
       bluenet:
 
