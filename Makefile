@@ -14,13 +14,13 @@ tests: build-test ## Run all the tests. The test image will be built. Docker swa
 	make tests-no-build
 
 tests-no-build: ## Run all tests without building initial image. Docker swarm will be activated then disabled
-	echo "Docker-compose tests"
 	make tests-compose-no-build
 	make tests-swarm-no-build
 	make clean
 
 tests-compose-no-build: ## Run docker-compose tests.
 	echo "Docker-compose tests"
+	docker swarm leave --force || true
 	./test/libs/bats/bin/bats test/*.bats
 
 tests-swarm-no-build: ## Run docker swarm tests. Docker swarm will be activated then disabled.
