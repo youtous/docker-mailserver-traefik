@@ -30,7 +30,7 @@ docker run -d --name mailserver --label mailserver-traefik.renew.domain=mail.loc
 
 Then start the traefik certificate renewer:
 ```
-docker run -d --name cert-renewer-traefik -e DOMAINS=mail.localhost.com -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD/acme.json:/tmp/traefik/:ro" youtous/mailserver-traefik
+docker run -d --name cert-renewer-traefik -e DOMAINS=mail.localhost.com -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD/acme.json:/tmp/traefik/acme.json:ro" youtous/mailserver-traefik
 ```
 
 #### Using docker-compose
@@ -40,7 +40,7 @@ services:
     image: youtous/mailserver-traefik:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./acme.json:/tmp/traefik/:ro # link traefik acme.json file (read-only)
+      - ./acme.json:/tmp/traefik/acme.json:ro # link traefik acme.json file (read-only)
     environment:
       - TRAEFIK_VERSION=2
       - CERTS_SOURCE=file
@@ -86,7 +86,7 @@ On the *cert-renewer-traefik* container, configure the following environment var
     image: youtous/mailserver-traefik:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock # required
-      - ./acme.json:/tmp/traefik/:ro # (only if you use file storage acme.json)
+      - ./acme.json:/tmp/traefik/acme.json:ro # (only if you use file storage acme.json)
     environment:
       - CERTS_SOURCE=file
       - DOMAINS=mail.localhost.com
@@ -102,7 +102,7 @@ Other environment variables depends on the **CERTS_SOURCE** selected.
 
 #### Using file storage _acme.json_
 
-- Mount `acme.json` on `/tmp/traefik/acme.json` read-only: `-v "$PWD/acme.json:/tmp/traefik/:ro"`
+- Mount `acme.json` on `/tmp/traefik/acme.json` read-only: `-v "$PWD/acme.json:/tmp/traefik/acme.json:ro"`
 
 - Specific environment variables:
 
