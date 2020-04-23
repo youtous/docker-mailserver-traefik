@@ -94,7 +94,7 @@ On the *cert-renewer-traefik* container, configure the following environment var
 
 | Variable | Description | Type | Default value | Values |
 | -------- | ----------- | ---- | ------------- | ------ |
-| **DOMAINS** | domain to watch, separate domains using a coma | *required* |  | any _tld_ seperated by a coma. e.g.: mail.server.com,mail.localhost.com
+| **DOMAINS** | domains to watch, separate domains using a coma | *required* |  | any _tld_ seperated by a coma. e.g.: mail.server.com,mail.localhost.com
 | **CERTS_SOURCE** | source used to retrieve certificates | *optional* | file | file, consul, etc, zookeeper, boltdb
 | **PUSH_PERIOD** | by default, certificates will be pushed when a change is detected and every *PUSH_PERIOD*, allowing new containers to get existing certificates | *optional* | 15m | *0* = disabled (certificates are pushed only when updated)<br> *<int>m/s/h* - see [man timeout](https://linux.die.net/man/1/timeout) )
 
@@ -125,6 +125,26 @@ By default, traefik v2 is selected, change it depending of your traefik version.
 | **KV_PASSWORD** | KV store password | *optional* |  | *string*
 
 - For other options, see [complete KV Store configuration](doc/kvstore.md).
+
+#### Wildcard certificates
+
+When using a wildcard certificate, the top domain is used for `DOMAINS` and `mailserver-traefik.renew.domain` label.<br>
+For instance, `*.localhost.com` certificate used for `mail.localhost.com` mailserver hostname will be configured as it follow.
+
+```yaml
+services:
+  cert-renewer-traefik:
+    image: youtous/mailserver-traefik:latest
+    <...>
+    environment:
+      <...>
+      - DOMAINS=localhost.com
+
+  mailserver:
+    image: tvial/docker-mailserver:latest
+    labels:
+      - "mailserver-traefik.renew.domain=localhost.com" # use the top domain NOT mail.localhost.com 
+```
 
 ### Examples
 
@@ -158,18 +178,7 @@ See [swarm cluster](/doc/swarm.md).
       - "traefik.frontend.redirect.replacement=https://webmail.localhost.com/" # redirect access to smtp/imap domain to and other domain (e.g. webmail or autoconfig)
       - "traefik.frontend.redirect.regex=.*"
       - "traefik.enable=true"
-      - "traefik.port=443"
-    ports:
-      - "25:25"
-      - "143:143"
-      - "587:587"
-      - "993:993"
-    volumes:
-      - maildata:/var/mail
-      - mailstate:/var/mail-state
-      - maillogs:/var/log/mail
-    env_file:
-      - .mailserver.env
+      - "traefik.port=443" # dummy port, not used
     environment:
       - SSL_TYPE=manual # required, do not change SSL_TYPE,SSL_CERT_PATH,SSL_KEY_PATH values
       - SSL_CERT_PATH=/var/mail-state/manual-ssl/cert
