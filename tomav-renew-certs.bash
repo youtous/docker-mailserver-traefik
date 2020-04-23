@@ -15,6 +15,7 @@ Backupkey="$Newkey.backup"
 Backupcert="$Newcert.backup"
 FQDN=$(hostname --fqdn)
 DEBUG=${DEBUG:-0}
+SMTP_ONLY=${SMTP_ONLY:-0}
 
 if [ ! -f "$Newcert" ]; then
   echo "[ERROR] $FQDN - renew certificates script called without submitting a new certificate in $Newcert"
@@ -62,9 +63,14 @@ else
 
   echo "[INFO] $FQDN - Cert update: new certificate copied into container"
 
-  echo "[INFO] $FQDN - Cert update: restarting daemons Postfix and Dovecot"
-  supervisorctl restart postfix
-  supervisorctl restart dovecot
+  if [ "$SMTP_ONLY" == "0" ]; then
+    echo "[INFO] $FQDN - Cert update: restarting daemons Postfix and Dovecot"
+    supervisorctl restart postfix
+    supervisorctl restart dovecot
+  else
+    echo "[INFO] $FQDN - Cert update: restarting daemon Postfix (SMTP_ONLY=$SMTP_ONLY)"
+    supervisorctl restart postfix
+  fi
 
   if [ -d "/var/mail-state" ]; then
     echo "[INFO] $FQDN - ONE_DIR detected, generating copy in /var/mail/manual-ssl/{cert,key}"
