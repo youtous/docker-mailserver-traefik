@@ -128,8 +128,8 @@ By default, traefik v2 is selected, change it depending of your traefik version.
 
 #### Wildcard certificates
 
-When using a wildcard certificate, the top domain is used for `DOMAINS` and `mailserver-traefik.renew.domain` label.<br>
-For instance, `*.localhost.com` certificate used for `mail.localhost.com` mailserver hostname will be configured as it follow.
+When using wildcard certificates, top domain is used for `DOMAINS` and for the `mailserver-traefik.renew.domain` label.<br>
+For instance, `*.localhost.com` certificate used by the mailserver `mail.localhost.com` will be configured as follows:
 
 ```yaml
 services:
