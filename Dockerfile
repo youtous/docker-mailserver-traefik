@@ -1,4 +1,4 @@
-FROM ldez/traefik-certs-dumper:v2.7.0
+FROM ldez/traefik-certs-dumper:v2.7.4
 
 LABEL org.label-schema.description="Automatically renew tomav/docker-mailserver certificates using traefik." \
  maintainer="youtous <contact@youtous.me>" \
