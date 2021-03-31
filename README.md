@@ -6,7 +6,7 @@
 [![Docker hub](https://img.shields.io/badge/hub-youtous%2Fmailserver--traefik-099cec?logo=docker)](https://hub.docker.com/r/youtous/mailserver-traefik/)
 [![Licence](https://img.shields.io/github/license/youtous/docker-mailserver-traefik)](https://github.com/youtous/docker-mailserver-traefik/blob/master/LICENSE)
 
-Docker image which automatically renews [tomav/docker-mailserver ](https://github.com/tomav/docker-mailserver/) certificates using [traefik](https://github.com/containous/traefik).
+Docker image which automatically renews [docker-mailserver/docker-mailserver](https://github.com/docker-mailserver/docker-mailserver) certificates using [traefik](https://github.com/containous/traefik).
 
 
 ### Features
@@ -25,7 +25,7 @@ Docker image which automatically renews [tomav/docker-mailserver ](https://githu
 
 Set a label on mailserver container and define SSL configuration:
 ```
-docker run -d --name mailserver --label mailserver-traefik.renew.domain=mail.localhost.com -e SSL_TYPE=manual -e SSL_KEY_PATH=/var/mail-state/manual-ssl/key -e SSL_CERT_PATH=/var/mail-state/manual-ssl/cert tvial/docker-mailserver
+docker run -d --name mailserver --label mailserver-traefik.renew.domain=mail.localhost.com -e SSL_TYPE=manual -e SSL_KEY_PATH=/var/mail-state/manual-ssl/key -e SSL_CERT_PATH=/var/mail-state/manual-ssl/cert docker-mailserver/docker-mailserver
 ```
 
 Then start the traefik certificate renewer:
@@ -47,7 +47,7 @@ services:
       - DOMAINS=mail.localhost.com
 
   mailserver:
-    image: tvial/docker-mailserver:latest
+    image: docker-mailserver/docker-mailserver:latest
     hostname: mail
     domainname: localhost.com
     labels:
@@ -71,7 +71,7 @@ services:
 On the *mailserver* container : define the **label** and **set SSL environment**:
 ```yaml
   mailserver:
-    image: tvial/docker-mailserver:latest
+    image: docker-mailserver/docker-mailserver:latest
     labels:
       - "mailserver-traefik.renew.domain=mail.localhost.com" # required label for hooking up the mailserver service
     environment:
@@ -141,7 +141,7 @@ services:
       - DOMAINS=localhost.com
 
   mailserver:
-    image: tvial/docker-mailserver:latest
+    image: docker-mailserver/docker-mailserver:latest
     labels:
       - "mailserver-traefik.renew.domain=localhost.com" # use the top domain NOT mail.localhost.com 
 ```
@@ -167,7 +167,7 @@ See [swarm cluster](/doc/swarm.md).
       - DOMAINS=mail.localhost.com,mailserver2.localhost.com # using multi domains
 
   mailserver:
-    image: tvial/docker-mailserver:latest
+    image: docker-mailserver/docker-mailserver:latest
     hostname: mail
     domainname: localhost.com
     labels:
