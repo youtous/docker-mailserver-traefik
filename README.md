@@ -2,9 +2,14 @@
 
 
 [![pipeline status](https://gitlab.com/youtous/docker-mailserver-traefik/badges/master/pipeline.svg)](https://gitlab.com/youtous/docker-mailserver-traefik/-/commits/master)
-[![Docker image size](https://img.shields.io/docker/image-size/youtous/mailserver-traefik)](https://hub.docker.com/r/youtous/mailserver-traefik/)
-[![Docker hub](https://img.shields.io/badge/hub-youtous%2Fmailserver--traefik-099cec?logo=docker)](https://hub.docker.com/r/youtous/mailserver-traefik/)
+[![Docker image](https://img.shields.io/badge/image-registry.gitlab.com%2Fyoutous%2Fdocker--mailserver--traefik-e4f0fb?logo=docker)](https://gitlab.com/youtous/odfe-alerts-handler/container_registry)
 [![Licence](https://img.shields.io/github/license/youtous/docker-mailserver-traefik)](https://github.com/youtous/docker-mailserver-traefik/blob/master/LICENSE)
+
+- docker images: https://gitlab.com/youtous/docker-mailserver-traefik/container_registry
+- github repo: https://github.com/youtous/docker-mailserver-traefik
+- gitlab repo: https://gitlab.com/youtous/docker-mailserver-traefik
+
+---
 
 Docker image which automatically renews [docker-mailserver/docker-mailserver](https://github.com/docker-mailserver/docker-mailserver) certificates using [traefik](https://github.com/containous/traefik).
 
@@ -30,14 +35,14 @@ docker run -d --name mailserver --label mailserver-traefik.renew.domain=mail.loc
 
 Then start the traefik certificate renewer:
 ```
-docker run -d --name cert-renewer-traefik -e DOMAINS=mail.localhost.com -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD/acme.json:/tmp/traefik/acme.json:ro" youtous/mailserver-traefik
+docker run -d --name cert-renewer-traefik -e DOMAINS=mail.localhost.com -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD/acme.json:/tmp/traefik/acme.json:ro" registry.gitlab.com/youtous/mailserver-traefik
 ```
 
 #### Using docker-compose
 ```yaml
 services:
   cert-renewer-traefik:
-    image: youtous/mailserver-traefik:latest
+    image: registry.gitlab.com/youtous/mailserver-traefik:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./acme.json:/tmp/traefik/acme.json:ro # link traefik acme.json file (read-only)
@@ -83,7 +88,7 @@ On the *mailserver* container : define the **label** and **set SSL environment**
 On the *cert-renewer-traefik* container, configure the following environment variables and map docker socket:
 ```yaml
   cert-renewer-traefik:
-    image: youtous/mailserver-traefik:latest
+    image: registry.gitlab.com/youtous/mailserver-traefik:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock # required
       - ./acme.json:/tmp/traefik/acme.json:ro # (only if you use file storage acme.json)
@@ -134,7 +139,7 @@ For instance, `*.localhost.com` certificate used by the mailserver `mail.localho
 ```yaml
 services:
   cert-renewer-traefik:
-    image: youtous/mailserver-traefik:latest
+    image: registry.gitlab.com/youtous/mailserver-traefik:latest
     <...>
     environment:
       <...>
@@ -158,7 +163,7 @@ See [swarm cluster](/doc/swarm.md).
 *docker-compose.yml*
 ```yaml
   cert-renewer-traefik:
-    image: youtous/mailserver-traefik:latest
+    image: registry.gitlab.com/youtous/mailserver-traefik:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock # required
     environment:
