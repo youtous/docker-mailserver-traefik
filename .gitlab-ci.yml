@@ -33,6 +33,7 @@ test:
   stage: test
   variables:
     TEST_TIMEOUT_IN_SECONDS: 120
+    TEST_LOCALHOST_HOSTNAME: docker
     GIT_SUBMODULE_STRATEGY: recursive
   before_script:
     - apk add --no-cache --update make bash curl

@@ -1,6 +1,8 @@
 TEST_STACK_NAME="test-mailserver-traefik"
 # default timeout is 50 seconds
 TEST_TIMEOUT_IN_SECONDS=${TEST_TIMEOUT_IN_SECONDS-50}
+# see https://stackoverflow.com/questions/53157384/docker-in-docker-localhost-networking-issue
+TEST_LOCALHOST_HOSTNAME="${TEST_LOCALHOST_HOSTNAME:-localhost}"
 
 function repeat_until_success_or_timeout {
     if ! [[ "$1" =~ ^[0-9]+$ ]]; then
@@ -105,7 +107,7 @@ function waitUntilStackCountRunningServices() {
 }
 
 function waitUntilTraefikReady() {
-    repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" curl https://localhost -v4 --insecure
+    repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" curl "https://$TEST_LOCALHOST_HOSTNAME" -v4 --insecure
     echo "stack $TEST_STACK_NAME: traefik is ready!" >&3
 }
 
