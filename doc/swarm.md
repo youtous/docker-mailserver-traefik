@@ -33,7 +33,7 @@ services:
       - internal
 
   mailserver:
-    image: tvial/docker-mailserver:latest
+    image: mailserver/docker-mailserver:latest
     deploy:
       placement:
         constraints:

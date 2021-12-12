@@ -15,7 +15,7 @@ services:
       - internal
 
   mailserver:
-    image: tvial/docker-mailserver:latest
+    image: mailserver/docker-mailserver:latest
     hostname: mail
     domainname: localhost.com
     labels:

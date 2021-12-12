@@ -16,7 +16,7 @@ services:
       - internal
 
   mailserver1:
-    image: tvial/docker-mailserver:latest
+    image: mailserver/docker-mailserver:latest
     deploy:
       placement:
         constraints:
@@ -42,7 +42,7 @@ services:
       bluenet:
 
   mailserver2:
-    image: tvial/docker-mailserver:latest
+    image: mailserver/docker-mailserver:latest
     deploy:
       placement:
         constraints:

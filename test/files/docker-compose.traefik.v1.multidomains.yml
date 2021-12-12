@@ -16,7 +16,7 @@ services:
       - internal
 
   mailserver1:
-    image: tvial/docker-mailserver:latest
+    image: mailserver/docker-mailserver:latest
     hostname: mail1
     domainname: localhost.com
     labels:
@@ -38,7 +38,7 @@ services:
       bluenet:
 
   mailserver2:
-    image: tvial/docker-mailserver:latest
+    image: mailserver/docker-mailserver:latest
     hostname: mail2
     domainname: localhost.com
     labels:
