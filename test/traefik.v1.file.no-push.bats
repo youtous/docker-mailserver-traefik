@@ -26,7 +26,7 @@ function teardown() {
     first_push_time=$( date +%s )
 
     # up mailserver
-    run docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver
+    run docker compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver
     assert_success
 
     # wait some time...
@@ -45,17 +45,17 @@ function teardown() {
 
 setup_file() {
   initAcmejson
-  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
-  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d traefik pebble challtestsrv
+  docker compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
+  docker compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d traefik pebble challtestsrv
 
   # wait traefik+pebble are up
   run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-traefik-1 | grep -F \"Adding certificate for domain(s) mail.localhost.com\""
   assert_success
   # then up the renewer
-  run docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver-traefik
+  run docker compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver-traefik
   assert_success
 }
 
 teardown_file() {
-  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
+  docker compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
 }

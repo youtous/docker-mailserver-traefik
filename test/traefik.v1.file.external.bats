@@ -21,7 +21,7 @@ function teardown() {
 
 @test "check: initial pull certificates when traefik was already running" {
     # up traefik stack
-    docker-compose -p "$TEST_STACK_NAME_TRAEFIK" -f "$DOCKER_FILE_TRAEFIK_TESTS" up -d
+    docker compose -p "$TEST_STACK_NAME_TRAEFIK" -f "$DOCKER_FILE_TRAEFIK_TESTS" up -d
 
     # wait traefik+pebble are up
     run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME_TRAEFIK}_traefik_1 | grep -F \"Adding certificate for domain(s) traefik.localhost.com\""
@@ -29,14 +29,14 @@ function teardown() {
 
     # launch certificate renewer and mailserver
     # wait until mailserver is up
-    run docker-compose -p "$TEST_STACK_NAME_MAILSERVER" -f "$DOCKER_FILE_MAILSERVER_TESTS" up -d mailserver
+    run docker compose -p "$TEST_STACK_NAME_MAILSERVER" -f "$DOCKER_FILE_MAILSERVER_TESTS" up -d mailserver
     assert_success
     # wait IO done
     acmejsonIOFinished
 
     run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME_MAILSERVER}_mailserver_1 | grep -F 'mail.localhost.com is up and running'"
     assert_success
-    run docker-compose -p "$TEST_STACK_NAME_MAILSERVER" -f "$DOCKER_FILE_MAILSERVER_TESTS" up -d
+    run docker compose -p "$TEST_STACK_NAME_MAILSERVER" -f "$DOCKER_FILE_MAILSERVER_TESTS" up -d
     assert_success
 
     # test certificates are dumped
@@ -59,15 +59,15 @@ function teardown() {
 
 setup_file() {
   initAcmejson
-  docker-compose -p "$TEST_STACK_NAME_TRAEFIK" -f "$DOCKER_FILE_TRAEFIK_TESTS" down -v --remove-orphans
-  docker-compose -p "$TEST_STACK_NAME_MAILSERVER" -f "$DOCKER_FILE_MAILSERVER_TESTS" down -v --remove-orphans
+  docker compose -p "$TEST_STACK_NAME_TRAEFIK" -f "$DOCKER_FILE_TRAEFIK_TESTS" down -v --remove-orphans
+  docker compose -p "$TEST_STACK_NAME_MAILSERVER" -f "$DOCKER_FILE_MAILSERVER_TESTS" down -v --remove-orphans
 
   docker network create test-traefik-public-external || true
 }
 
 teardown_file() {
-  docker-compose -p "$TEST_STACK_NAME_TRAEFIK" -f "$DOCKER_FILE_TRAEFIK_TESTS" down -v --remove-orphans
-  docker-compose -p "$TEST_STACK_NAME_MAILSERVER" -f "$DOCKER_FILE_MAILSERVER_TESTS" down -v --remove-orphans
+  docker compose -p "$TEST_STACK_NAME_TRAEFIK" -f "$DOCKER_FILE_TRAEFIK_TESTS" down -v --remove-orphans
+  docker compose -p "$TEST_STACK_NAME_MAILSERVER" -f "$DOCKER_FILE_MAILSERVER_TESTS" down -v --remove-orphans
 
   docker network rm test-traefik-public-external || true
 }

@@ -19,7 +19,7 @@ function teardown() {
     # mock first certificate generation
     run cp "${BATS_TEST_DIRNAME}/fixtures/acme.v1.json" "${BATS_TEST_DIRNAME}/files/acme.json" && chmod 600 "${BATS_TEST_DIRNAME}/files/acme.json"
     assert_success
-    run docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver-traefik
+    run docker compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver-traefik
     assert_success
 
     # test script has been triggered on mailserver
@@ -69,12 +69,12 @@ function teardown() {
 
 setup_file() {
   initAcmejson
-  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
-  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver
+  docker compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
+  docker compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver
   # wait until mailserver is up
   repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-1 | grep -F 'mail.localhost.com is up and running'"
 }
 
 teardown_file() {
-  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
+  docker compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
 }
