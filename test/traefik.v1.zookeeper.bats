@@ -18,15 +18,15 @@ function teardown() {
 
 @test "check: certificate mail.localhost.com received on mailserver container" {
     # test script has been triggered on mailserver
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F \"[INFO] mail.localhost.com - new certificate '/tmp/ssl/fullchain.pem' received on mailserver container\""
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -F \"[INFO] mail.localhost.com - new certificate '/tmp/ssl/fullchain.pem' received on mailserver container\""
     assert_success
 
     # test trigger script completion
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
     assert_success
 
     # test presence of certificates
-    run docker exec "${TEST_STACK_NAME}_mailserver_1" ls /etc/postfix/ssl/
+    run docker exec "${TEST_STACK_NAME}-mailserver-1" ls /etc/postfix/ssl/
     assert_output --partial 'cert'
     assert_output --partial 'key'
 }
@@ -40,12 +40,12 @@ setup_file() {
   docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d traefik pebble challtestsrv zookeeper
 
   # wait traefik+pebble are up
-  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_traefik_1 | grep -F \"Got certificate for domains [traefik.localhost.com]\""
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-traefik-1 | grep -F \"Got certificate for domains [traefik.localhost.com]\""
   assert_success
   # wait until mailserver is up
   run docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver
   assert_success
-  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver_1 | grep -F 'mail.localhost.com is up and running'"
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-1 | grep -F 'mail.localhost.com is up and running'"
   assert_success
   # then up the entire stack
   run docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d

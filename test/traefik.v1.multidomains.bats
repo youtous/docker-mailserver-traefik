@@ -18,27 +18,27 @@ function teardown() {
 @test "check: each certificate is sent to the corresponding mailserver" {
 
   # test certificates are dumped
-  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker exec ${TEST_STACK_NAME}_mailserver-traefik_1 ls /tmp/ssl | grep mail1.localhost.com"
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker exec ${TEST_STACK_NAME}-mailserver-traefik-1 ls /tmp/ssl | grep mail1.localhost.com"
   assert_success
-  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker exec ${TEST_STACK_NAME}_mailserver-traefik_1 ls /tmp/ssl | grep mail2.localhost.com"
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker exec ${TEST_STACK_NAME}-mailserver-traefik-1 ls /tmp/ssl | grep mail2.localhost.com"
   assert_success
 
   # test presence of certificates
-  run docker exec "${TEST_STACK_NAME}_mailserver-traefik_1" ls /tmp/ssl/mail1.localhost.com/
+  run docker exec "${TEST_STACK_NAME}-mailserver-traefik-1" ls /tmp/ssl/mail1.localhost.com/
   assert_output --partial 'fullchain.pem'
   assert_output --partial 'privkey.pem'
-  run docker exec "${TEST_STACK_NAME}_mailserver-traefik_1" ls /tmp/ssl/mail2.localhost.com/
+  run docker exec "${TEST_STACK_NAME}-mailserver-traefik-1" ls /tmp/ssl/mail2.localhost.com/
   assert_output --partial 'fullchain.pem'
   assert_output --partial 'privkey.pem'
   # register fingerprint of certificates
-  fp_mailserver1=$( docker exec "${TEST_STACK_NAME}_mailserver-traefik_1" sha256sum /tmp/ssl/mail1.localhost.com/fullchain.pem | awk '{print $1}' )
-  fp_mailserver2=$( docker exec "${TEST_STACK_NAME}_mailserver-traefik_1" sha256sum /tmp/ssl/mail2.localhost.com/fullchain.pem | awk '{print $1}' )
+  fp_mailserver1=$( docker exec "${TEST_STACK_NAME}-mailserver-traefik-1" sha256sum /tmp/ssl/mail1.localhost.com/fullchain.pem | awk '{print $1}' )
+  fp_mailserver2=$( docker exec "${TEST_STACK_NAME}-mailserver-traefik-1" sha256sum /tmp/ssl/mail2.localhost.com/fullchain.pem | awk '{print $1}' )
 
 
   # test posthook certificate is triggered on each server
-  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F '[INFO] mail1.localhost.com - Cert update: new certificate copied into container'"
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -F '[INFO] mail1.localhost.com - Cert update: new certificate copied into container'"
   assert_success
-  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F '[INFO] mail2.localhost.com - Cert update: new certificate copied into container'"
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -F '[INFO] mail2.localhost.com - Cert update: new certificate copied into container'"
   assert_success
 
   # test presence of certificates
@@ -66,7 +66,7 @@ setup_file() {
   docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d traefik pebble challtestsrv
 
   # wait traefik+pebble are up
-  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_traefik_1 | grep -F \"Adding certificate for domain(s) traefik.localhost.com\""
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-traefik-1 | grep -F \"Adding certificate for domain(s) traefik.localhost.com\""
   assert_success
   # wait until mailserver is up
   run docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver1 mailserver2

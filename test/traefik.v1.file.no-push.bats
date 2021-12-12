@@ -21,7 +21,7 @@ function teardown() {
 @test "check: no push existing certificate to newly created container" {
 
     # wait push has been done
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F \"Pushing mail.localhost.com\""
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -F \"Pushing mail.localhost.com\""
     assert_success
     first_push_time=$( date +%s )
 
@@ -33,9 +33,9 @@ function teardown() {
     sleep 10
 
     # test presence of certificates
-    run docker exec "${TEST_STACK_NAME}_mailserver_1" ls /etc/postfix/ssl/cert
+    run docker exec "${TEST_STACK_NAME}-mailserver-1" ls /etc/postfix/ssl/cert
     assert_output --partial 'No such file or directory'
-    run docker exec "${TEST_STACK_NAME}_mailserver_1" ls /etc/postfix/ssl/key
+    run docker exec "${TEST_STACK_NAME}-mailserver-1" ls /etc/postfix/ssl/key
     assert_output --partial 'No such file or directory'
 }
 
@@ -49,7 +49,7 @@ setup_file() {
   docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d traefik pebble challtestsrv
 
   # wait traefik+pebble are up
-  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_traefik_1 | grep -F \"Adding certificate for domain(s) mail.localhost.com\""
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-traefik-1 | grep -F \"Adding certificate for domain(s) mail.localhost.com\""
   assert_success
   # then up the renewer
   run docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver-traefik

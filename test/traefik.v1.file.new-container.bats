@@ -21,7 +21,7 @@ function teardown() {
 @test "check: push existing certificate to newly created container" {
 
     # wait push has been done
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F \"Pushing mail.localhost.com\""
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -F \"Pushing mail.localhost.com\""
     assert_success
     first_push_time=$( date +%s )
 
@@ -30,13 +30,13 @@ function teardown() {
     assert_success
 
     # test trigger script completion
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs --since ${first_push_time} ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F '[INFO] Periodically push initiated...'"
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs --since ${first_push_time} ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -F '[INFO] Periodically push initiated...'"
     assert_success
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs --since ${first_push_time} ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs --since ${first_push_time} ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
     assert_success
 
     # test presence of certificates
-    run docker exec "${TEST_STACK_NAME}_mailserver_1" ls /etc/postfix/ssl/
+    run docker exec "${TEST_STACK_NAME}-mailserver-1" ls /etc/postfix/ssl/
     assert_output --partial 'cert'
     assert_output --partial 'key'
 }
@@ -51,7 +51,7 @@ setup_file() {
   docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d traefik pebble challtestsrv
 
   # wait traefik+pebble are up
-  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_traefik_1 | grep -F \"Adding certificate for domain(s) mail.localhost.com\""
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-traefik-1 | grep -F \"Adding certificate for domain(s) mail.localhost.com\""
   assert_success
   acmejsonSingleIOFinished
 

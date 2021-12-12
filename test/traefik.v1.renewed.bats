@@ -23,41 +23,41 @@ function teardown() {
     assert_success
 
     # test script has been triggered on mailserver
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F \"[INFO] mail.localhost.com - new certificate '/tmp/ssl/fullchain.pem' received on mailserver container\""
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -F \"[INFO] mail.localhost.com - new certificate '/tmp/ssl/fullchain.pem' received on mailserver container\""
     assert_success
     # test trigger script completion
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
     assert_success
     # test presence of certificates
-    run docker exec "${TEST_STACK_NAME}_mailserver_1" ls /etc/postfix/ssl/
+    run docker exec "${TEST_STACK_NAME}-mailserver-1" ls /etc/postfix/ssl/
     assert_output --partial 'cert'
     assert_output --partial 'key'
 
-    fp_mailserver_initial=$( docker exec "${TEST_STACK_NAME}_mailserver_1" sha256sum /etc/postfix/ssl/cert | awk '{print $1}' )
+    fp_mailserver_initial=$( docker exec "${TEST_STACK_NAME}-mailserver-1" sha256sum /etc/postfix/ssl/cert | awk '{print $1}' )
 
     # save timestamp for log
     first_restart_timestamp=$( date +%s )
 
     # once the a first certificate has been pushed, we must simulate a new renewal
-    run docker cp "$BATS_TEST_DIRNAME/fixtures/acme.v1.inversed.json" "${TEST_STACK_NAME}_mailserver-traefik_1":/tmp/traefik/acme.inversed.json.tmp
+    run docker cp "$BATS_TEST_DIRNAME/fixtures/acme.v1.inversed.json" "${TEST_STACK_NAME}-mailserver-traefik-1":/tmp/traefik/acme.inversed.json.tmp
     assert_success
-    run docker exec "${TEST_STACK_NAME}_mailserver-traefik_1" sh -c "cat /tmp/traefik/acme.inversed.json.tmp > /tmp/traefik/acme.json"
+    run docker exec "${TEST_STACK_NAME}-mailserver-traefik-1" sh -c "cat /tmp/traefik/acme.inversed.json.tmp > /tmp/traefik/acme.json"
     assert_success
 
     # let the magical operates
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs --since ${first_restart_timestamp} ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F \"[INFO] mail.localhost.com - new certificate '/tmp/ssl/fullchain.pem' received on mailserver container\""
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs --since ${first_restart_timestamp} ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -F \"[INFO] mail.localhost.com - new certificate '/tmp/ssl/fullchain.pem' received on mailserver container\""
     assert_success
     # test trigger script completion
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs --since ${first_restart_timestamp} ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs --since ${first_restart_timestamp} ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
     # debug puporse
-    docker logs "${TEST_STACK_NAME}_mailserver-traefik_1" >&3
+    docker logs "${TEST_STACK_NAME}-mailserver-traefik-1" >&3
     assert_success
 
     # i/o temp fix
     sleep 20
 
     # compare new ssl cert installed
-    fp_mailserver_after=$( docker exec "${TEST_STACK_NAME}_mailserver_1" sha256sum /etc/postfix/ssl/cert | awk '{print $1}' )
+    fp_mailserver_after=$( docker exec "${TEST_STACK_NAME}-mailserver-1" sha256sum /etc/postfix/ssl/cert | awk '{print $1}' )
     run echo "$fp_mailserver_after"
     refute_output "$fp_mailserver_initial"
 }
@@ -72,7 +72,7 @@ setup_file() {
   docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
   docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver
   # wait until mailserver is up
-  repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver_1 | grep -F 'mail.localhost.com is up and running'"
+  repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-1 | grep -F 'mail.localhost.com is up and running'"
 }
 
 teardown_file() {

@@ -7,7 +7,7 @@
 
 # Forked from https://github.com/hanscees/dockerscripts/blob/master/scripts/tomav-renew-certs
 
-Currentcert=/etc/postfix/ssl/cert # should not be changed, hardcoded in mailserver
+Currentcert=/etc/postfix/ssl/cert # should not be changed, hardcoded in mailserver, changed to `/etc/dms/tls` in V10.2.0 (https://github.com/docker-mailserver/docker-mailserver/blob/9cb890292fdb529b11d995093df79d10a96852a2/CHANGELOG.md#v1020)
 Newcert=/tmp/ssl/fullchain.pem
 Currentkey=/etc/postfix/ssl/key
 Newkey=/tmp/ssl/privkey.pem

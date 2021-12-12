@@ -19,10 +19,10 @@ function teardown() {
 @test "check: ONLY postfix restarted using supervisorctl after certificate push (not dovecot)" {
     postfix_dovecot_restarted_regex="postfix: .*\npostfix: started"
 
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -zoP '${postfix_dovecot_restarted_regex}'"
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -zoP '${postfix_dovecot_restarted_regex}'"
     sleep 5
 
-    run docker exec "${TEST_STACK_NAME}_mailserver_1" supervisorctl status dovecot
+    run docker exec "${TEST_STACK_NAME}-mailserver-1" supervisorctl status dovecot
     assert_output --partial 'STOPPED'
     assert_output --partial 'Not started'
 }
@@ -37,7 +37,7 @@ setup_file() {
   docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d traefik pebble challtestsrv
 
   # wait traefik+pebble are up
-  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_traefik_1 | grep -F \"Adding certificate for domain(s) traefik.localhost.com\""
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-traefik-1 | grep -F \"Adding certificate for domain(s) traefik.localhost.com\""
   assert_success
   # wait until mailserver is up
   run docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver
@@ -45,7 +45,7 @@ setup_file() {
   # wait IO done
   acmejsonIOFinished
 
-  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver_1 | grep -F 'mail.localhost.com is up and running'"
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-1 | grep -F 'mail.localhost.com is up and running'"
   assert_success
   # then up the entire stack
   run docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d
