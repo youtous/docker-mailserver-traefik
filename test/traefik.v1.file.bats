@@ -37,7 +37,7 @@ function teardown() {
 }
 
 @test "check: certificate is not persisted when ONE_DIR=0" {
-    run docker exec "${TEST_STACK_NAME}_mailserver_1" ls /var/mail-state/manual-ssl
+    run docker exec "${TEST_STACK_NAME}-mailserver-1" ls /var/mail-state/manual-ssl
     assert_failure
 }
 

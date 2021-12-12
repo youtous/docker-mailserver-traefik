@@ -16,10 +16,10 @@ function teardown() {
 }
 
 @test "check: missing certificates on mailserver" {
-  run docker exec "${TEST_STACK_NAME}-mailserver-1" ls /etc/postfix/ssl/key
-  assert_output --partial 'No such file or directory'
-  run docker exec "${TEST_STACK_NAME}-mailserver-1" ls /etc/postfix/ssl/cert
-  assert_output --partial 'No such file or directory'
+  run docker exec "${TEST_STACK_NAME}-mailserver-1" cat /etc/postfix/ssl/key
+  assert_output ''
+  run docker exec "${TEST_STACK_NAME}-mailserver-1" cat /etc/postfix/ssl/cert
+  assert_output ''
 }
 
 @test "check: mailserver-traefik waits when no key" {

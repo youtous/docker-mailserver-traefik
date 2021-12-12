@@ -24,7 +24,7 @@ function teardown() {
     docker compose -p "$TEST_STACK_NAME_TRAEFIK" -f "$DOCKER_FILE_TRAEFIK_TESTS" up -d
 
     # wait traefik+pebble are up
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME_TRAEFIK}_traefik_1 | grep -F \"Adding certificate for domain(s) traefik.localhost.com\""
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME_TRAEFIK}-traefik-1 | grep -F \"Adding certificate for domain(s) traefik.localhost.com\""
     assert_success
 
     # launch certificate renewer and mailserver
@@ -34,21 +34,21 @@ function teardown() {
     # wait IO done
     acmejsonIOFinished
 
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME_MAILSERVER}_mailserver_1 | grep -F 'mail.localhost.com is up and running'"
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME_MAILSERVER}-mailserver-1 | grep -F 'mail.localhost.com is up and running'"
     assert_success
     run docker compose -p "$TEST_STACK_NAME_MAILSERVER" -f "$DOCKER_FILE_MAILSERVER_TESTS" up -d
     assert_success
 
     # test certificates are dumped
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker exec ${TEST_STACK_NAME_MAILSERVER}_mailserver-traefik_1 ls /tmp/ssl | grep mail.localhost.com"
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker exec ${TEST_STACK_NAME_MAILSERVER}-mailserver-traefik-1 ls /tmp/ssl | grep mail.localhost.com"
     assert_success
 
     # test posthook certificate is triggered
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME_MAILSERVER}_mailserver-traefik_1 | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME_MAILSERVER}-mailserver-traefik-1 | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
     assert_success
 
     # test presence of certificates
-    run docker exec "${TEST_STACK_NAME_MAILSERVER}_mailserver_1" ls /etc/postfix/ssl/
+    run docker exec "${TEST_STACK_NAME_MAILSERVER}-mailserver-1" ls /etc/postfix/ssl/
     assert_output --partial 'cert'
     assert_output --partial 'key'
 }
