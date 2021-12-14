@@ -29,11 +29,11 @@ function teardown() {
     run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
     assert_success
     # test presence of certificates
-    run docker exec "${TEST_STACK_NAME}-mailserver-1" ls /etc/postfix/ssl/
+    run docker exec "${TEST_STACK_NAME}-mailserver-1" ls /etc/dms/tls/
     assert_output --partial 'cert'
     assert_output --partial 'key'
 
-    fp_mailserver_initial=$( docker exec "${TEST_STACK_NAME}-mailserver-1" sha256sum /etc/postfix/ssl/cert | awk '{print $1}' )
+    fp_mailserver_initial=$( docker exec "${TEST_STACK_NAME}-mailserver-1" sha256sum /etc/dms/tls/cert | awk '{print $1}' )
 
     # save timestamp for log
     first_restart_timestamp=$( date +%s )
@@ -57,7 +57,7 @@ function teardown() {
     sleep 20
 
     # compare new ssl cert installed
-    fp_mailserver_after=$( docker exec "${TEST_STACK_NAME}-mailserver-1" sha256sum /etc/postfix/ssl/cert | awk '{print $1}' )
+    fp_mailserver_after=$( docker exec "${TEST_STACK_NAME}-mailserver-1" sha256sum /etc/dms/tls/cert | awk '{print $1}' )
     run echo "$fp_mailserver_after"
     refute_output "$fp_mailserver_initial"
 }

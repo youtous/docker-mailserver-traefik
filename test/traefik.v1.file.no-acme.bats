@@ -16,9 +16,9 @@ function teardown() {
 }
 
 @test "check: missing certificates on mailserver" {
-  run docker exec "${TEST_STACK_NAME}-mailserver-1" cat /etc/postfix/ssl/key
+  run docker exec "${TEST_STACK_NAME}-mailserver-1" cat /etc/dms/tls/key
   assert_output ''
-  run docker exec "${TEST_STACK_NAME}-mailserver-1" cat /etc/postfix/ssl/cert
+  run docker exec "${TEST_STACK_NAME}-mailserver-1" cat /etc/dms/tls/cert
   assert_output ''
 }
 

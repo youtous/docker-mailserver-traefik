@@ -32,10 +32,10 @@ function teardown() {
     assert_success
 
     # test presence of certificates on both servers
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" docker exec "${mailserver1_id}" ls /etc/postfix/ssl/
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" docker exec "${mailserver1_id}" ls /etc/dms/tls/
     assert_output --partial 'cert'
     assert_output --partial 'key'
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" docker exec "${mailserver2_id}" ls /etc/postfix/ssl/
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" docker exec "${mailserver2_id}" ls /etc/dms/tls/
     assert_output --partial 'cert'
     assert_output --partial 'key'
 }

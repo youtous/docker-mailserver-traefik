@@ -33,9 +33,9 @@ function teardown() {
     sleep 10
 
     # test presence of certificates
-    run docker exec "${TEST_STACK_NAME}-mailserver-1" ls /etc/postfix/ssl/cert
+    run docker exec "${TEST_STACK_NAME}-mailserver-1" ls /etc/dms/tls/cert
     assert_output --partial 'No such file or directory'
-    run docker exec "${TEST_STACK_NAME}-mailserver-1" ls /etc/postfix/ssl/key
+    run docker exec "${TEST_STACK_NAME}-mailserver-1" ls /etc/dms/tls/key
     assert_output --partial 'No such file or directory'
 }
 

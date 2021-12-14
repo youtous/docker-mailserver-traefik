@@ -28,7 +28,7 @@ function teardown() {
     assert_success
 
     # test presence of certificates
-    run docker exec "${TEST_STACK_NAME}-mailserver-1" ls /etc/postfix/ssl/
+    run docker exec "${TEST_STACK_NAME}-mailserver-1" ls /etc/dms/tls/
     assert_output --partial 'cert'
     assert_output --partial 'key'
 }

@@ -35,17 +35,17 @@ function teardown() {
   assert_success
 
   # test presence of certificates
-  run docker exec "${TEST_STACK_NAME}-mailserver1-1" ls /etc/postfix/ssl/
+  run docker exec "${TEST_STACK_NAME}-mailserver1-1" ls /etc/dms/tls/
   assert_output --partial 'cert'
   assert_output --partial 'key'
-  run docker exec "${TEST_STACK_NAME}-mailserver2-1" ls /etc/postfix/ssl/
+  run docker exec "${TEST_STACK_NAME}-mailserver2-1" ls /etc/dms/tls/
   assert_output --partial 'cert'
   assert_output --partial 'key'
 
   # compare fingerprints in mailserver container
-  fp_mailserver1_target=$( docker exec "${TEST_STACK_NAME}-mailserver1-1" sha256sum /etc/postfix/ssl/cert | awk '{print $1}')
+  fp_mailserver1_target=$( docker exec "${TEST_STACK_NAME}-mailserver1-1" sha256sum /etc/dms/tls/cert | awk '{print $1}')
   assert_equal "$fp_mailserver1_target" "$fp_mailserver"
-  fp_mailserver2_target=$( docker exec "${TEST_STACK_NAME}-mailserver2-1" sha256sum /etc/postfix/ssl/cert | awk '{print $1}' )
+  fp_mailserver2_target=$( docker exec "${TEST_STACK_NAME}-mailserver2-1" sha256sum /etc/dms/tls/cert | awk '{print $1}' )
   assert_equal "$fp_mailserver2_target" "$fp_mailserver"
 }
 

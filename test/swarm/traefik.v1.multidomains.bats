@@ -46,17 +46,17 @@ function teardown() {
     assert_success
 
     # test presence of certificates on both servers
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" docker exec "${mailserver1_id}" ls /etc/postfix/ssl/
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" docker exec "${mailserver1_id}" ls /etc/dms/tls/
     assert_output --partial 'cert'
     assert_output --partial 'key'
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" docker exec "${mailserver2_id}" ls /etc/postfix/ssl/
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" docker exec "${mailserver2_id}" ls /etc/dms/tls/
     assert_output --partial 'cert'
     assert_output --partial 'key'
 
     # compare fingerprints in mailserver container
-    fp_mailserver1_target=$( docker exec "$mailserver1_id" sha256sum /etc/postfix/ssl/cert | awk '{print $1}')
+    fp_mailserver1_target=$( docker exec "$mailserver1_id" sha256sum /etc/dms/tls/cert | awk '{print $1}')
     assert_equal "$fp_mailserver1_target" "$fp_mailserver1"
-    fp_mailserver2_target=$( docker exec "$mailserver2_id" sha256sum /etc/postfix/ssl/cert | awk '{print $1}' )
+    fp_mailserver2_target=$( docker exec "$mailserver2_id" sha256sum /etc/dms/tls/cert | awk '{print $1}' )
     assert_equal "$fp_mailserver2_target" "$fp_mailserver2"
 }
 
