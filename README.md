@@ -5,7 +5,7 @@
 [![Docker image](https://img.shields.io/badge/image-registry.gitlab.com%2Fyoutous%2Fdocker--mailserver--traefik-e4f0fb?logo=docker)](https://gitlab.com/youtous/odfe-alerts-handler/container_registry)
 [![Licence](https://img.shields.io/github/license/youtous/docker-mailserver-traefik)](https://github.com/youtous/docker-mailserver-traefik/blob/master/LICENSE)
 
-- docker images: https://gitlab.com/youtous/docker-mailserver-traefik/container_registry
+- docker images _(amd64,arm64,386)_: https://gitlab.com/youtous/docker-mailserver-traefik/container_registry
 - github repo: https://github.com/youtous/docker-mailserver-traefik
 - gitlab repo: https://gitlab.com/youtous/docker-mailserver-traefik
 
@@ -53,7 +53,7 @@ services:
 
   mailserver:
     image: mailserver/docker-mailserver:latest
-    command: > # Since v10.3.0, a empty certs must be present to allow mailserver to load, see https://github.com/docker-mailserver/docker-mailserver/blob/a4095a7d48082fe0dbfd2146cf9be4ed743736d1/target/scripts/startup/setup-stack.sh#L989
+    command: > # Since v10.3.0, certificates must be present at startup: https://github.com/docker-mailserver/docker-mailserver/blob/a4095a7d48082fe0dbfd2146cf9be4ed743736d1/target/scripts/startup/setup-stack.sh#L989
       sh -c '
         mkdir -p $$(dirname "$$SSL_KEY_PATH") &&
         touch -a "$$SSL_KEY_PATH" &&
@@ -84,7 +84,7 @@ On the *mailserver* container : define the **label** and **set SSL environment**
 ```yaml
   mailserver:
     image: mailserver/docker-mailserver:latest
-    command: > # Since v10.3.0, a empty certs must be present to allow mailserver to load, see https://github.com/docker-mailserver/docker-mailserver/blob/a4095a7d48082fe0dbfd2146cf9be4ed743736d1/target/scripts/startup/setup-stack.sh#L989
+    command: > # Since v10.3.0, certificates must be present at startup: https://github.com/docker-mailserver/docker-mailserver/blob/a4095a7d48082fe0dbfd2146cf9be4ed743736d1/target/scripts/startup/setup-stack.sh#L989
       sh -c '
         mkdir -p $$(dirname "$$SSL_KEY_PATH") &&
         touch -a "$$SSL_KEY_PATH" &&
@@ -161,7 +161,7 @@ services:
 
   mailserver:
     image: mailserver/docker-mailserver:latest
-    command: > # Since v10.3.0, a empty certs must be present to allow mailserver to load, see https://github.com/docker-mailserver/docker-mailserver/blob/a4095a7d48082fe0dbfd2146cf9be4ed743736d1/target/scripts/startup/setup-stack.sh#L989
+    command: >
       sh -c '
         mkdir -p $$(dirname "$$SSL_KEY_PATH") &&
         touch -a "$$SSL_KEY_PATH" &&
@@ -194,7 +194,7 @@ See [swarm cluster](/doc/swarm.md).
 
   mailserver:
     image: mailserver/docker-mailserver:latest
-    command: > # Since v10.3.0, a empty certs must be present to allow mailserver to load, see https://github.com/docker-mailserver/docker-mailserver/blob/a4095a7d48082fe0dbfd2146cf9be4ed743736d1/target/scripts/startup/setup-stack.sh#L989
+    command: > 
       sh -c '
         mkdir -p $$(dirname "$$SSL_KEY_PATH") &&
         touch -a "$$SSL_KEY_PATH" &&

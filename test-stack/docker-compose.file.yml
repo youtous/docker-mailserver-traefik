@@ -19,7 +19,7 @@ services:
 
   mailserver:
     image: mailserver/docker-mailserver:latest
-    command: > # Since v10.3.0, a empty certs must be present to allow mailserver to load, see https://github.com/docker-mailserver/docker-mailserver/blob/a4095a7d48082fe0dbfd2146cf9be4ed743736d1/target/scripts/startup/setup-stack.sh#L989
+    command: >
       sh -c '
         mkdir -p $$(dirname "$$SSL_KEY_PATH") &&
         touch -a "$$SSL_KEY_PATH" &&
