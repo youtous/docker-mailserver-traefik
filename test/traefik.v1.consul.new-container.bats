@@ -21,22 +21,22 @@ function teardown() {
 @test "check: push existing certificate to newly created container" {
 
     # wait push has been done
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F \"Pushing mail.localhost.com\""
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -F \"Pushing mail.localhost.com\""
     assert_success
     first_push_time=$( date +%s )
 
     # up mailserver
-    run docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver
+    run docker compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver
     assert_success
 
     # test trigger script completion
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs --since ${first_push_time} ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F '[INFO] Periodically push initiated...'"
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs --since ${first_push_time} ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -F '[INFO] Periodically push initiated...'"
     assert_success
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs --since ${first_push_time} ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs --since ${first_push_time} ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
     assert_success
 
     # test presence of certificates
-    run docker exec "${TEST_STACK_NAME}_mailserver_1" ls /etc/postfix/ssl/
+    run docker exec "${TEST_STACK_NAME}-mailserver-1" find /etc/dms/tls/ -not -empty -ls
     assert_output --partial 'cert'
     assert_output --partial 'key'
 }
@@ -47,17 +47,17 @@ function teardown() {
 
 setup_file() {
   initAcmejson
-  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
-  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d traefik consul-leader pebble challtestsrv
+  docker compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
+  docker compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d traefik consul-leader pebble challtestsrv
 
   # wait traefik+pebble are up
-  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_traefik_1 | grep -F \"Got certificate for domains [mail.localhost.com]\""
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-traefik-1 | grep -F \"Got certificate for domains [mail.localhost.com]\""
   assert_success
   # then up the renewer
-  run docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver-traefik
+  run docker compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver-traefik
   assert_success
 }
 
 teardown_file() {
-  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
+  docker compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
 }

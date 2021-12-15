@@ -16,13 +16,16 @@ services:
       - internal
 
   mailserver:
-    image: tvial/docker-mailserver:latest
+    image: mailserver/docker-mailserver:latest
     command: >
       sh -c '
-      cp /tmp/dovecot/dh.pem /var/mail-state/dhparams.pem &&
-      mkdir -p /var/mail-state/lib-shared &&
-      cp /var/mail-state/dhparams.pem /var/mail-state/lib-shared/dhparams.pem &&
-      supervisord -c /etc/supervisor/supervisord.conf
+        mkdir -p $$(dirname "$$SSL_KEY_PATH") &&
+        touch -a "$$SSL_KEY_PATH" &&
+        touch -a "$$SSL_CERT_PATH" &&
+        cp /tmp/dovecot/dh.pem /var/mail-state/dhparams.pem &&
+        mkdir -p /var/mail-state/lib-shared &&
+        cp /var/mail-state/dhparams.pem /var/mail-state/lib-shared/dhparams.pem &&
+        supervisord -c /etc/supervisor/supervisord.conf
       '
     hostname: mail
     domainname: localhost.com

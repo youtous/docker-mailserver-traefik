@@ -33,7 +33,14 @@ services:
       - internal
 
   mailserver:
-    image: tvial/docker-mailserver:latest
+    image: mailserver/docker-mailserver:latest
+    command: > 
+      sh -c '
+        mkdir -p $$(dirname "$$SSL_KEY_PATH") &&
+        touch -a "$$SSL_KEY_PATH" &&
+        touch -a "$$SSL_CERT_PATH" &&
+        supervisord -c /etc/supervisor/supervisord.conf
+      '
     deploy:
       placement:
         constraints:

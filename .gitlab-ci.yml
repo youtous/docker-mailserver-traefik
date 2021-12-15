@@ -24,27 +24,41 @@ before_script:
 # build the image and push it on gitlab registry
 build:
   stage: build
+  before_script:
+    - echo -n $CI_REGISTRY_PASSWORD | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - apk add --no-cache --update curl
+    # install docker buildx for multi-arch images
+    - mkdir -p ~/.docker/cli-plugins/
+    - curl -SL https://github.com/docker/buildx/releases/download/v0.7.1/buildx-v0.7.1.linux-amd64 -o ~/.docker/cli-plugins/docker-buildx
+    - echo "22fcb78c66905bf6ddf198118aaa9838b0349a25347606264be17e4276d6d5fc  /root/.docker/cli-plugins/docker-buildx" | sha256sum -c
+    - chmod a+x ~/.docker/cli-plugins/docker-buildx
   script:
-    - docker build --pull -t "$CONTAINER_TEST_IMAGE" .
-    - docker push "$CONTAINER_TEST_IMAGE"
+    - docker buildx create --use
+    - docker buildx build --push --platform linux/386,linux/amd64,linux/arm/v7,linux/arm64/v8 --tag "$CONTAINER_TEST_IMAGE" .
 
 test:
-  image: tmaier/docker-compose:latest
+  image: docker:latest
   stage: test
   variables:
-    TEST_TIMEOUT_IN_SECONDS: 120
+    TEST_TIMEOUT_IN_SECONDS: 180
     TEST_LOCALHOST_HOSTNAME: docker
     GIT_SUBMODULE_STRATEGY: recursive
   before_script:
+    - echo -n $CI_REGISTRY_PASSWORD | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
     - apk add --no-cache --update make bash curl
     - apk add --no-cache --upgrade grep
+    # install docker-compose v2
+    - mkdir -p ~/.docker/cli-plugins/
+    - curl -SL https://github.com/docker/compose/releases/download/v2.2.2/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
+    - echo "92551cd3d22b41536ce8345fe06795ad0d08cb3c17b693ecbfe41176e501bfd4  /root/.docker/cli-plugins/docker-compose" | sha256sum -c
+    - chmod +x ~/.docker/cli-plugins/docker-compose
   script:
     - docker pull "$CONTAINER_TEST_IMAGE"
     - docker tag "$CONTAINER_TEST_IMAGE" "$CONTAINER_TAG_FOR_TESTS"
     - make tests-no-build
 
 # push "latest" image to the registry
-build-latest:
+release-latest:
   stage: push
   only:
     - master # latest from master only
@@ -54,7 +68,7 @@ build-latest:
     - docker push $CONTAINER_RELEASE_IMAGE
 
 # push "tagged" image to the registry
-build-release:
+release-version:
   stage: push
   # only start a release on tags of master (not other branches)
   only:

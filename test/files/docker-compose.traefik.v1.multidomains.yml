@@ -16,7 +16,14 @@ services:
       - internal
 
   mailserver1:
-    image: tvial/docker-mailserver:latest
+    image: mailserver/docker-mailserver:latest
+    command: >
+      sh -c '
+        mkdir -p $$(dirname "$$SSL_KEY_PATH") &&
+        touch -a "$$SSL_KEY_PATH" &&
+        touch -a "$$SSL_CERT_PATH" &&
+        supervisord -c /etc/supervisor/supervisord.conf
+      '
     hostname: mail1
     domainname: localhost.com
     labels:
@@ -38,7 +45,14 @@ services:
       bluenet:
 
   mailserver2:
-    image: tvial/docker-mailserver:latest
+    image: mailserver/docker-mailserver:latest
+    command: >
+      sh -c '
+        mkdir -p $$(dirname "$$SSL_KEY_PATH") &&
+        touch -a "$$SSL_KEY_PATH" &&
+        touch -a "$$SSL_CERT_PATH" &&
+        supervisord -c /etc/supervisor/supervisord.conf
+      '
     hostname: mail2
     domainname: localhost.com
     labels:

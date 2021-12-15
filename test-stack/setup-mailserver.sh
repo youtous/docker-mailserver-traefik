@@ -49,9 +49,9 @@ _update_config_path() {
 
 if [ -z "$IMAGE_NAME" ]; then
   if [ "$CRI" = "docker" ]; then
-    IMAGE_NAME=tvial/docker-mailserver:latest
+    IMAGE_NAME=mailserver/docker-mailserver:latest
   elif [ "$CRI" = "podman" ]; then
-    IMAGE_NAME=docker.io/tvial/docker-mailserver:latest
+    IMAGE_NAME=docker.io/mailserver/docker-mailserver:latest
   fi
 fi
 
@@ -75,8 +75,8 @@ _usage() {
 OPTIONS:
 
   -i IMAGE_NAME     The name of the docker-mailserver image, by default
-                    'tvial/docker-mailserver:latest' for docker, and 
-                    'docker.io/tvial/docker-mailserver:latest' for podman.
+                    'mailserver/docker-mailserver:latest' for docker, and
+                    'docker.io/mailserver/docker-mailserver:latest' for podman.
 
   -c CONTAINER_NAME The name of the running container.
 

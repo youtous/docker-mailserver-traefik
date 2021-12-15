@@ -32,10 +32,10 @@ function teardown() {
     assert_success
 
     # test presence of certificates on both servers
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" docker exec "${mailserver1_id}" ls /etc/postfix/ssl/
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" docker exec "${mailserver1_id}" find /etc/dms/tls/ -not -empty -ls
     assert_output --partial 'cert'
     assert_output --partial 'key'
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" docker exec "${mailserver2_id}" ls /etc/postfix/ssl/
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" docker exec "${mailserver2_id}" find /etc/dms/tls/ -not -empty -ls
     assert_output --partial 'cert'
     assert_output --partial 'key'
 }
@@ -45,6 +45,8 @@ function teardown() {
 }
 
 setup_file() {
+  sleep 10 # see https://github.com/moby/moby/issues/29293
+
   docker stack rm "$TEST_STACK_NAME"
   waitSwarmStackDown
   autoCleanSwarmStackVolumes

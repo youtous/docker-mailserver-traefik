@@ -16,24 +16,49 @@ function teardown() {
 }
 
 @test "check: push certificate for mail.localhost.com trigged" {
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F 'Pushing mail.localhost.com to'"
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -F 'Pushing mail.localhost.com to'"
     assert_success
 }
 
 @test "check: certificate mail.localhost.com received on mailserver container" {
 
     # test script has been triggered on mailserver
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F \"[INFO] mail.localhost.com - new certificate '/tmp/ssl/fullchain.pem' received on mailserver container\""
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -F \"[INFO] mail.localhost.com - new certificate '/tmp/ssl/fullchain.pem' received on mailserver container\""
     assert_success
 
     # test trigger script completion
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
     assert_success
 
     # test presence of certificates
-    run docker exec "${TEST_STACK_NAME}_mailserver_1" ls /etc/postfix/ssl/
+    run docker exec "${TEST_STACK_NAME}-mailserver-1" find /etc/dms/tls/ -not -empty -ls
     assert_output --partial 'cert'
     assert_output --partial 'key'
+}
+
+@test "check: valid openssl certificate mail.localhost.com valid on 993,465,25,587" {
+    # ensure postfix and dovecot are restarted
+    postfix_dovecot_restarted_regex="postfix: .*\npostfix: started\ndovecot: .*\ndovecot: started"
+
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -zoP '${postfix_dovecot_restarted_regex}'"
+    assert_success
+
+    # wait some time for slow services (dovecot, postfix) to restart
+    sleep 15
+
+    # postfix
+    run docker exec "${TEST_STACK_NAME}-mailserver-1" sh -c "printf 'quit\n' | openssl s_client -connect localhost:25 -starttls smtp | openssl x509 -noout"
+    assert_output --partial 'CN = mail.localhost.com'
+
+    run docker exec "${TEST_STACK_NAME}-mailserver-1" sh -c "printf 'quit\n' | openssl s_client -connect localhost:587 -starttls smtp | openssl x509 -noout"
+    assert_output --partial 'CN = mail.localhost.com'
+
+    # dovecot
+    run docker exec "${TEST_STACK_NAME}-mailserver-1" sh -c "printf 'quit\n' | openssl s_client -connect localhost:465 | openssl x509 -noout"
+    assert_output --partial 'CN = mail.localhost.com'
+
+    run docker exec "${TEST_STACK_NAME}-mailserver-1" sh -c "printf 'quit\n' | openssl s_client -connect localhost:993 | openssl x509 -noout"
+    assert_output --partial 'CN = mail.localhost.com'
 }
 
 @test "last" {
@@ -41,22 +66,22 @@ function teardown() {
 }
 
 setup_file() {
-  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
-  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d traefik pebble challtestsrv consul-leader
+  docker compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
+  docker compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d traefik pebble challtestsrv consul-leader
 
   # wait traefik+pebble are up
-  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_traefik_1 | grep -F \"Got certificate for domains [traefik.localhost.com]\""
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-traefik-1 | grep -F \"Got certificate for domains [traefik.localhost.com]\""
   assert_success
   # wait until mailserver is up
-  run docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver
+  run docker compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d mailserver
   assert_success
-  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver_1 | grep -F 'mail.localhost.com is up and running'"
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-1 | grep -F 'mail.localhost.com is up and running'"
   assert_success
   # then up the entire stack
-  run docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d
+  run docker compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d
   assert_success
 }
 
 teardown_file() {
-  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
+  docker compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
 }

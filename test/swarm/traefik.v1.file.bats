@@ -29,9 +29,37 @@ function teardown() {
     assert_success
 
     # test presence of certificates
-    run docker exec "${mailserver_id}" ls /etc/postfix/ssl/
+    run docker exec "${mailserver_id}" find /etc/dms/tls/ -not -empty -ls
     assert_output --partial 'cert'
     assert_output --partial 'key'
+}
+
+@test "check: valid openssl certificate mail.localhost.com valid on 993,465,25,587" {
+    mailserver_id=$(getFirstContainerOfServiceName "mailserver")
+    mailserver_certrenewer_id=$(getFirstContainerOfServiceName "cert-renewer")
+
+    # ensure postfix and dovecot are restarted
+    postfix_dovecot_restarted_regex="postfix: .*\npostfix: started\ndovecot: .*\ndovecot: started"
+
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${mailserver_certrenewer_id} | grep -zoP '${postfix_dovecot_restarted_regex}'"
+    assert_success
+
+    # wait some time for slow services (dovecot, postfix) to restart
+    sleep 15
+
+    # postfix
+    run docker exec "${mailserver_id}" sh -c "printf 'quit\n' | openssl s_client -connect localhost:25 -starttls smtp | openssl x509 -noout"
+    assert_output --partial 'CN = mail.localhost.com'
+
+    run docker exec "${mailserver_id}" sh -c "printf 'quit\n' | openssl s_client -connect localhost:587 -starttls smtp | openssl x509 -noout"
+    assert_output --partial 'CN = mail.localhost.com'
+
+    # dovecot
+    run docker exec "${mailserver_id}" sh -c "printf 'quit\n' | openssl s_client -connect localhost:465 | openssl x509 -noout"
+    assert_output --partial 'CN = mail.localhost.com'
+
+    run docker exec "${mailserver_id}" sh -c "printf 'quit\n' | openssl s_client -connect localhost:993 | openssl x509 -noout"
+    assert_output --partial 'CN = mail.localhost.com'
 }
 
 @test "last" {
@@ -39,6 +67,7 @@ function teardown() {
 }
 
 setup_file() {
+  sleep 10 # see https://github.com/moby/moby/issues/29293
   docker stack rm "$TEST_STACK_NAME"
   waitSwarmStackDown
   autoCleanSwarmStackVolumes

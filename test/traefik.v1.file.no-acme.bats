@@ -16,18 +16,18 @@ function teardown() {
 }
 
 @test "check: missing certificates on mailserver" {
-  run docker exec "${TEST_STACK_NAME}_mailserver_1" ls /etc/postfix/ssl/key
-  assert_output --partial 'No such file or directory'
-  run docker exec "${TEST_STACK_NAME}_mailserver_1" ls /etc/postfix/ssl/cert
-  assert_output --partial 'No such file or directory'
+  run docker exec "${TEST_STACK_NAME}-mailserver-1" cat /etc/dms/tls/key
+  assert_output ''
+  run docker exec "${TEST_STACK_NAME}-mailserver-1" cat /etc/dms/tls/cert
+  assert_output ''
 }
 
 @test "check: mailserver-traefik waits when no key" {
   # wait until traefik built ACME file
-  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_traefik_1 | grep -F 'Building ACME client...'"
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-traefik-1 | grep -F 'Building ACME client...'"
   assert_success
 
-  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}_mailserver-traefik_1 | grep -F 'Traefik acme is generating. Waiting until completed...'"
+  run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -F 'Traefik acme is generating. Waiting until completed...'"
   assert_success
 }
 
@@ -37,10 +37,10 @@ function teardown() {
 
 setup_file() {
   initAcmejson
-  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
-  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d traefik mailserver mailserver-traefik
+  docker compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
+  docker compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" up -d traefik mailserver mailserver-traefik
 }
 
 teardown_file() {
-  docker-compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
+  docker compose -p "$TEST_STACK_NAME" -f "$DOCKER_FILE_TESTS" down -v --remove-orphans
 }
