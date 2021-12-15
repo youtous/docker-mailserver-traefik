@@ -7,6 +7,9 @@
 
 # Forked from https://github.com/hanscees/dockerscripts/blob/master/scripts/tomav-renew-certs
 
+FQDN=$(hostname --fqdn)
+DEBUG=${DEBUG:-0}
+
 if [ -d "/etc/dms/tls" ]; then
   # Since mailserver v10.2.0 the certificate location has been changed to `/etc/dms/tls`  (https://github.com/docker-mailserver/docker-mailserver/blob/9cb890292fdb529b11d995093df79d10a96852a2/CHANGELOG.md#v1020)
   echo "[INFO] $FQDN - Certificates destination detected: /etc/dms/tls (docker-mailserver > v10.2.0)"
@@ -22,8 +25,6 @@ Newcert=/tmp/ssl/fullchain.pem
 Newkey=/tmp/ssl/privkey.pem
 Backupkey="$Newkey.backup"
 Backupcert="$Newcert.backup"
-FQDN=$(hostname --fqdn)
-DEBUG=${DEBUG:-0}
 SMTP_ONLY=${SMTP_ONLY:-0}
 
 if [ ! -f "$Newcert" ]; then
