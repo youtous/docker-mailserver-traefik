@@ -38,6 +38,9 @@ function teardown() {
     run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -zoP '${postfix_dovecot_restarted_regex}'"
     assert_success
 
+    # wait some time for slow containers to restart
+    sleep 15
+
     # postfix
     run docker exec "${TEST_STACK_NAME}-mailserver-1" sh -c "printf 'quit\n' | openssl s_client -connect localhost:25 -starttls smtp | openssl x509 -noout"
     assert_output --partial 'CN = mail.localhost.com'
