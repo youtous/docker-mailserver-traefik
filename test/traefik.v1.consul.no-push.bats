@@ -32,11 +32,10 @@ function teardown() {
     # wait some time...
     sleep 10
 
-    # test presence of certificates
-    run docker exec "${TEST_STACK_NAME}-mailserver-1" ls /etc/dms/tls/cert
-    assert_output --partial 'No such file or directory'
-    run docker exec "${TEST_STACK_NAME}-mailserver-1" ls /etc/dms/tls/key
-    assert_output --partial 'No such file or directory'
+    # test absence of certificates
+    run docker exec "${TEST_STACK_NAME}-mailserver-1" find /etc/dms/tls/ -empty -ls
+    assert_output --partial 'cert'
+    assert_output --partial 'key'
 }
 
 @test "last" {

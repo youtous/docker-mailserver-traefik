@@ -29,7 +29,7 @@ function teardown() {
     run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -F '[INFO] mail.localhost.com - Cert update: new certificate copied into container'"
     assert_success
     # test presence of certificates
-    run docker exec "${TEST_STACK_NAME}-mailserver-1" ls /etc/dms/tls/
+    run docker exec "${TEST_STACK_NAME}-mailserver-1" find /etc/dms/tls/ -not -empty -ls
     assert_output --partial 'cert'
     assert_output --partial 'key'
 

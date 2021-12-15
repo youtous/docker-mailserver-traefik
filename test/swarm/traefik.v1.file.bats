@@ -29,9 +29,31 @@ function teardown() {
     assert_success
 
     # test presence of certificates
-    run docker exec "${mailserver_id}" ls /etc/dms/tls/
+    run docker exec "${mailserver_id}" find /etc/dms/tls/ -not -empty -ls
     assert_output --partial 'cert'
     assert_output --partial 'key'
+}
+
+@test "check: valid openssl certificate mail.localhost.com valid on 993,465,25,587" {
+    # ensure postfix and dovecot are restarted
+    postfix_dovecot_restarted_regex="postfix: .*\npostfix: started\ndovecot: .*\ndovecot: started"
+
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -zoP '${postfix_dovecot_restarted_regex}'"
+    assert_success
+
+    # postfix
+    run docker exec "${TEST_STACK_NAME}-mailserver-1" sh -c "printf 'quit\n' | openssl s_client -connect localhost:25 -starttls smtp | openssl x509 -noout"
+    assert_output --partial 'CN = mail.localhost.com'
+
+    run docker exec "${TEST_STACK_NAME}-mailserver-1" sh -c "printf 'quit\n' | openssl s_client -connect localhost:587 -starttls smtp | openssl x509 -noout"
+    assert_output --partial 'CN = mail.localhost.com'
+
+    # dovecot
+    run docker exec "${TEST_STACK_NAME}-mailserver-1" sh -c "printf 'quit\n' | openssl s_client -connect localhost:465 | openssl x509 -noout"
+    assert_output --partial 'CN = mail.localhost.com'
+
+    run docker exec "${TEST_STACK_NAME}-mailserver-1" sh -c "printf 'quit\n' | openssl s_client -connect localhost:993 | openssl x509 -noout"
+    assert_output --partial 'CN = mail.localhost.com'
 }
 
 @test "last" {
