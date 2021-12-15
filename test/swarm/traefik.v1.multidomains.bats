@@ -65,6 +65,7 @@ function teardown() {
 }
 
 setup_file() {
+  sleep 10 # see https://github.com/moby/moby/issues/29293
   docker stack rm "$TEST_STACK_NAME"
   waitSwarmStackDown
   autoCleanSwarmStackVolumes
