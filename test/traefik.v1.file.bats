@@ -43,7 +43,7 @@ function teardown() {
     run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -zoP '${postfix_dovecot_restarted_regex}'"
     assert_success
 
-    # wait some time for slow containers to restart
+    # wait some time for slow services (dovecot, postfix) to restart
     sleep 15
 
     # postfix

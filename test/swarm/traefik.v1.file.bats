@@ -35,27 +35,30 @@ function teardown() {
 }
 
 @test "check: valid openssl certificate mail.localhost.com valid on 993,465,25,587" {
+    mailserver_id=$(getFirstContainerOfServiceName "mailserver")
+    mailserver_certrenewer_id=$(getFirstContainerOfServiceName "cert-renewer")
+
     # ensure postfix and dovecot are restarted
     postfix_dovecot_restarted_regex="postfix: .*\npostfix: started\ndovecot: .*\ndovecot: started"
 
-    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${TEST_STACK_NAME}-mailserver-traefik-1 | grep -zoP '${postfix_dovecot_restarted_regex}'"
+    run repeat_until_success_or_timeout "$TEST_TIMEOUT_IN_SECONDS" sh -c "docker logs ${mailserver_certrenewer_id} | grep -zoP '${postfix_dovecot_restarted_regex}'"
     assert_success
 
-    # wait some time for slow containers to restart
+    # wait some time for slow services (dovecot, postfix) to restart
     sleep 15
 
     # postfix
-    run docker exec "${TEST_STACK_NAME}-mailserver-1" sh -c "printf 'quit\n' | openssl s_client -connect localhost:25 -starttls smtp | openssl x509 -noout"
+    run docker exec "${mailserver_id}" sh -c "printf 'quit\n' | openssl s_client -connect localhost:25 -starttls smtp | openssl x509 -noout"
     assert_output --partial 'CN = mail.localhost.com'
 
-    run docker exec "${TEST_STACK_NAME}-mailserver-1" sh -c "printf 'quit\n' | openssl s_client -connect localhost:587 -starttls smtp | openssl x509 -noout"
+    run docker exec "${mailserver_id}" sh -c "printf 'quit\n' | openssl s_client -connect localhost:587 -starttls smtp | openssl x509 -noout"
     assert_output --partial 'CN = mail.localhost.com'
 
     # dovecot
-    run docker exec "${TEST_STACK_NAME}-mailserver-1" sh -c "printf 'quit\n' | openssl s_client -connect localhost:465 | openssl x509 -noout"
+    run docker exec "${mailserver_id}" sh -c "printf 'quit\n' | openssl s_client -connect localhost:465 | openssl x509 -noout"
     assert_output --partial 'CN = mail.localhost.com'
 
-    run docker exec "${TEST_STACK_NAME}-mailserver-1" sh -c "printf 'quit\n' | openssl s_client -connect localhost:993 | openssl x509 -noout"
+    run docker exec "${mailserver_id}" sh -c "printf 'quit\n' | openssl s_client -connect localhost:993 | openssl x509 -noout"
     assert_output --partial 'CN = mail.localhost.com'
 }
 
