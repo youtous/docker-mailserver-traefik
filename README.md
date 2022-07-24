@@ -4,7 +4,7 @@
 [![pipeline status](https://gitlab.com/youtous/docker-mailserver-traefik/badges/master/pipeline.svg)](https://gitlab.com/youtous/docker-mailserver-traefik/-/commits/master)
 [![Docker image](https://img.shields.io/badge/image-registry.gitlab.com%2Fyoutous%2Fdocker--mailserver--traefik-e4f0fb?logo=docker&label=docker%20amd64,arm64,386)](https://gitlab.com/youtous/docker-mailserver-traefik/container_registry)
 [![GitHub Repo stars](https://img.shields.io/github/stars/youtous/docker-mailserver-traefik?label=✨%20youtous%2Fdocker-mailserver-traefik&style=social)](https://github.com/youtous/docker-mailserver-traefik/)
-[![Gitlab Repo](https://img.shields.io/badge/gitlab.com%2Fyoutous%2Fcaddy--consul--docker?label=✨%20youtous%2Fdocker-mailserver-traefik&style=social&logo=gitlab)](https://gitlab.com/youtous/docker-mailserver-traefik/)
+[![Gitlab Repo](https://img.shields.io/badge/gitlab.com%2Fyoutous%2Fdocker--mailserver--traefik?label=✨%20youtous%2Fdocker-mailserver-traefik&style=social&logo=gitlab)](https://gitlab.com/youtous/docker-mailserver-traefik/)
 [![Licence](https://img.shields.io/github/license/youtous/docker-mailserver-traefik)](https://github.com/youtous/docker-mailserver-traefik/blob/master/LICENSE)
 
 ---
