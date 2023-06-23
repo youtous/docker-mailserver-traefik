@@ -3,7 +3,7 @@ FROM ldez/traefik-certs-dumper:v2.8.1
 LABEL org.label-schema.description="Automatically renew mailserver/docker-mailserver certificates using traefik." \
  maintainer="youtous <contact@youtous.me>" \
  org.label-schema.build-date=$BUILD_DATE \
- org.label-schema.name="youtous/mailserver-traefik" \
+ org.label-schema.name="youtous/docker-mailserver-traefik" \
  org.label-schema.url="https://github.com/youtous/docker-mailserver-traefik/" \
  org.label-schema.vcs-url="https://github.com/youtous/docker-mailserver-traefik" \
  org.label-schema.vcs-ref=$VCS_REF \
